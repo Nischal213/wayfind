@@ -1,3 +1,5 @@
+"use client"
+
 import { HiCursorClick } from "react-icons/hi";
 import { MdKeyboardAlt } from "react-icons/md";
 import { GrNetwork } from "react-icons/gr";
@@ -5,7 +7,7 @@ import { LoginCard } from "./LoginCard";
 
 export const Hero = () => {
     return (
-        <div className="flex">
+        <div className="flex bg-[#262624]">
             <div className="flex flex-col w-[50%] gap-y-10 items-center justify-center bg-[#30302e] h-dvh">
                 <div className="flex flex-col gap-y-5 items-center w-[80%] mb-5">
                     <h1 className="text-6xl text-pretty [word-spacing:-0.2em]">Draw,describe, <span className="text-blue-500 whitespace-nowrap"> find the path. </span> </h1>
@@ -34,7 +36,9 @@ export const Hero = () => {
                 </div>
             </div>
             
-            <LoginCard></LoginCard>
+            <div className="flex w-[50%] items-center justify-center h-dvh ">
+                <LoginCard></LoginCard>
+            </div>
         </div>
     )
 }
