@@ -21,6 +21,7 @@ export const LoginCard = () => {
     return (
         <div className="bg-[#1a1a1a] p-8 rounded-2xl ...">
           <div id="clerk-captcha" className="hidden" />
+          <h1 className="text-6xl tracking-wider text-blue-600 font-semibold font-dancing-script text-center mb-10"> Wayfind </h1>
           {!verifying ? (
             <EmailForm 
               error={error} 
