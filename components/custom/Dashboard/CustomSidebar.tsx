@@ -28,7 +28,6 @@ export const CustomSidebar = () => {
 
     return (
         <TooltipProvider>
-        <SidebarProvider>
             <Sidebar collapsible="icon" className="bg-[#EDEDED]">
                 <SidebarHeader>
                     <div className="flex items-center justify-between p-2 group-data-[state=collapsed]:justify-center">
@@ -88,7 +87,6 @@ export const CustomSidebar = () => {
                     </SidebarMenu>
                 </SidebarFooter>
             </Sidebar>
-        </SidebarProvider>
         </TooltipProvider>
     )
 }
