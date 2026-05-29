@@ -1,27 +1,12 @@
 "use client"
 
-import { ChangeEvent, ReactNode, useState } from "react"
+import { ChangeEvent, useState } from "react"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 import { Field, FieldGroup } from "../ui/field"
 import { Label } from "../ui/label"
 import { Input } from "../ui/input"
+import { DialogBoxProps, DialogBoxField } from "@/lib/types"
 
-export interface DialogBoxField {
-    Node1 : string
-    Node2 : string
-    Distance : string
-}
-
-type input = "Node1" | "Node2" | "Distance"
-
-export interface DialogBoxProps {
-    title : string
-    description? : boolean
-    btnName : string
-    icon : ReactNode
-    inputsToCreate : input[]
-    action : (field : DialogBoxField) => string | null
-}
 
 export const DialogBox = (props : DialogBoxProps) => {
     const { title , description=false , btnName , icon , inputsToCreate , action } = props
@@ -66,20 +51,18 @@ export const DialogBox = (props : DialogBoxProps) => {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
-                    { description? 
                     <DialogDescription asChild>
                         <p className="text-sm tracking-tighter leading-4.5 font-medium">
-                            To delete multiple items quickly, hold Shift and drag a selection box around them, then press Backspace!
+                            {description}
                         </p>
                     </DialogDescription> 
-                    : ""}
                 </DialogHeader>
 
                 <FieldGroup>
                     <Field>
                         {inputsToCreate.map((input , key) => (
                             <div key={key}>
-                                <Label className="mb-2"> {input} </Label>
+                                <Label className="mb-2"> {input.length > 5 ? input : input.slice(0,4) + " " + input.slice(4)} </Label>
                                 <Input name={input} value={field[input]} onChange={updateField}/>
                             </div>
                         ))}

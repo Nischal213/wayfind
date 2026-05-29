@@ -1,29 +1,23 @@
 import { MarkerType, type Node, type Edge } from "@xyflow/react"
-import { Dispatch, SetStateAction } from "react"
-import { DialogBox, DialogBoxField , DialogBoxProps } from "@/components/common/DialogBox"
+import { DialogBox } from "@/components/common/DialogBox"
 import { CircleMinus, CirclePlus, Spline, SplinePointer } from "lucide-react"
-
-interface ToolsProp {
-    nodes : Node[]
-    setNodes : Dispatch<SetStateAction<Node[]>>
-    edges : Edge[]
-    setEdges : Dispatch<SetStateAction<Edge[]>>
-}
+import { DialogBoxField, DialogBoxProps, WhiteboardProps } from "@/lib/types"
+import { isAlphanumerical , capitalizeWord } from "@/lib/utils"
 
 
-export const Tools = (props : ToolsProp) => {
+export const Tools = (props : WhiteboardProps) => {
     const { nodes , setNodes , edges , setEdges} = props
-
-    const isAlphanumerical = (str : string) => {
-        return /^[a-zA-Z0-9]+$/.test(str)
-    }
 
     const doesNodeExist = (fieldNode : string) => {
         if (nodes.length == 0) {
             return false
         }
 
-        const findNode = nodes.find((node) => node.data.label === fieldNode)
+        const findNode = nodes.find((node) => {
+            if (node.data.label && typeof node.data.label === "string") {
+                return node.data.label.toLowerCase() === fieldNode.toLowerCase()
+            } 
+        })
 
         return findNode ? true : false
     }
@@ -49,19 +43,14 @@ export const Tools = (props : ToolsProp) => {
             return "Node names must consist of letters or numbers only!"
         }
 
-        const isNameDuplicate = nodes.find((node) => {
-            if (node.data.label && typeof node.data.label === "string") {
-                return node.data.label.toLowerCase() === field.Node1.toLowerCase()
-            } 
-        })
-
-        if (isNameDuplicate) {
+        if (doesNodeExist(field.Node1)) {
             return "Node names must be unique!"
         }
 
         const newNode : Node = {
-            id : `${field.Node1}`,
-            data : { label: field.Node1},
+            id : `${field.Node1.toLowerCase()}`,
+            type : "custom",
+            data : { label: capitalizeWord(field.Node1)},
             position: {
                 x: Math.random() * 400 - 200, 
                 y: Math.random() * 300 + 50
@@ -75,6 +64,7 @@ export const Tools = (props : ToolsProp) => {
 
     const addNodeProp : DialogBoxProps = {
         title : "Add node",
+        description : "Use the chatbox if you want to add multiple nodes quickly!",
         btnName : "Add node",
         icon : <CirclePlus size={18} />,
         inputsToCreate : ["Node1"],
@@ -83,7 +73,7 @@ export const Tools = (props : ToolsProp) => {
 
     const removeNode = (field : DialogBoxField) : string | null => {
         if (doesNodeExist(field.Node1)) {
-            setNodes((prevNodes) => prevNodes.filter((nodes) => nodes.data.label !== field.Node1))
+            setNodes((prevNodes) => prevNodes.filter((nodes) => nodes.data.label !== capitalizeWord(field.Node1)))
             return null
         } else {
             return "That node doesn't exist!"
@@ -92,7 +82,7 @@ export const Tools = (props : ToolsProp) => {
 
     const removeNodeProp : DialogBoxProps = {
         title : "Remove node",
-        description : true,
+        description : "To delete multiple items quickly, hold Shift and drag a selection box around them, then press Backspace!",
         btnName : "Remove node",
         icon : <CircleMinus size={18} />,
         inputsToCreate : ["Node1"],
@@ -100,32 +90,50 @@ export const Tools = (props : ToolsProp) => {
     }
 
     const addEdge = (field : DialogBoxField) : string | null => {
-        if (!doesNodeExist(field.Node1)) {
+        const node1 = capitalizeWord(field.Node1)
+        const node2 = capitalizeWord(field.Node2)
+        const distance = field.Distance
+
+
+        if (!doesNodeExist(node1)) {
             return "First node given doesn't exist!"
         }
 
-        if (!doesNodeExist(field.Node2)) {
+        if (!doesNodeExist(node2)) {
             return "Second node given doesn't exist!"
         }
 
-        if (field.Node1 === field.Node2) {
+        if (node1 === node2) {
             return "Can't make an edge to the same node!"
         }
 
-        if (field.Distance.trim() === "") {
+        if (distance.trim() === "") {
             return "Distance can't be empty!"
         }
 
-        if (isNaN(Number(field.Distance))) {
+        if (isNaN(Number(distance))) {
             return "Distance must be a number!"
         }
 
-        const newEdge : Edge = {
-            id : `${field.Node1}-${field.Node2}`,
-            source : `${getNodeId(field.Node1)}`,
-            target : `${getNodeId(field.Node2)}`,
-            label : `${field.Distance}`,
-            type : "smoothstep",
+        const edgeExists = edges.find((edge) => edge.id === `${node1}-${node2}`)
+        
+        if (edgeExists) {
+            const updatedEdge : Edge = {...edgeExists , label : distance}
+
+            setEdges((prevEdges) => [...prevEdges , updatedEdge])
+            return null
+        }
+
+        const reverseExists = edges.some((edge) => edge.id === `${node2}-${node1}`)
+
+        const newEdge: Edge = {
+            id: `${node1}-${node2}`,
+            source: `${getNodeId(node1)}`,
+            target: `${getNodeId(node2)}`,
+            label: `${field.Distance}`,
+            type: "smoothstep",
+            sourceHandle: reverseExists ? "bottom" : "top",
+            targetHandle: reverseExists ? "bottom" : "top",
             markerEnd: {
                 type: MarkerType.ArrowClosed,
                 width: 20,
@@ -141,6 +149,7 @@ export const Tools = (props : ToolsProp) => {
 
     const addEdgeProp : DialogBoxProps = {
         title : "Add edge",
+        description : "This can also be used to update existing edges!",
         btnName : "Add edge",
         icon : <Spline size={18}/>,
         inputsToCreate : ["Node1" , "Node2" , "Distance"],
@@ -148,18 +157,21 @@ export const Tools = (props : ToolsProp) => {
     }
 
     const removeEdge = (field : DialogBoxField) : string | null => {
-        if (!doesNodeExist(field.Node1)) {
+        const node1 = capitalizeWord(field.Node1)
+        const node2 = capitalizeWord(field.Node2)
+
+        if (!doesNodeExist(node1)) {
             return "First node given doesn't exist!"
         }
 
-        if (!doesNodeExist(field.Node2)) {
+        if (!doesNodeExist(node2)) {
             return "Second node given doesn't exist!"
         }
 
-        const targetEdge = edges.find((edge) => edge.id === `${field.Node1}-${field.Node2}`)
+        const targetEdge = edges.find((edge) => edge.id === `${node1}-${node2}`)
 
         if (targetEdge) {
-            setEdges((prevEdges) => prevEdges.filter((edge) => edge.id !== `${field.Node1}-${field.Node2}`))
+            setEdges((prevEdges) => prevEdges.filter((edge) => edge.id !== `${node1}-${node2}`))
             return null
         } else {
             return "There is no edge between those nodes!" 
@@ -168,7 +180,7 @@ export const Tools = (props : ToolsProp) => {
 
     const removeEdgeProp : DialogBoxProps = {
         title : "Remove edge",
-        description : true,
+        description : "To delete multiple items quickly, hold Shift and drag a selection box around them, then press Backspace!",
         btnName : "Remove edge",
         icon : <SplinePointer size={18} />,
         inputsToCreate : ["Node1" , "Node2"],

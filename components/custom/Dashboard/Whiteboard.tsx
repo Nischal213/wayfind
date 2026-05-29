@@ -1,27 +1,22 @@
 "use client"
 
-import { useCallback, Dispatch, SetStateAction } from 'react';
+import { useCallback, } from 'react';
 import { 
     ReactFlow, 
     applyNodeChanges, 
     applyEdgeChanges, 
-    Background, 
-    type Node , 
-    type Edge ,
+    Background,  
     type OnEdgesChange,
     type OnNodesChange,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { WhiteboardProps } from '@/lib/types';
+import CustomNode from '@/components/common/CustomNode';
 
-interface WhiteboardProps {
-    nodes : Node[]
-    setNodes : Dispatch<SetStateAction<Node[]>>
-    edges : Edge[]
-    setEdges : Dispatch<SetStateAction<Edge[]>>
-}
  
 export const Whiteboard = (prop : WhiteboardProps) => {
     const { nodes , setNodes , edges , setEdges } = prop
+    const nodeTypes = { custom: CustomNode }
 
     const onNodesChange : OnNodesChange = useCallback(
         (changes) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
@@ -40,6 +35,7 @@ export const Whiteboard = (prop : WhiteboardProps) => {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             connectOnClick={false}
+            nodeTypes={nodeTypes}
             fitView
         >
             <Background/>
