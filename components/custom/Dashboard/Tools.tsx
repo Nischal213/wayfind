@@ -13,18 +13,16 @@ export const Tools = (props : WhiteboardProps) => {
             return false
         }
 
-        const findNode = nodes.find((node) => {
-            if (node.data.label && typeof node.data.label === "string") {
-                return node.data.label.toLowerCase() === fieldNode.toLowerCase()
-            } 
+        const findNode = nodes.some((node) => {
+            return node.id === fieldNode.toLowerCase()
         })
 
-        return findNode ? true : false
+        return findNode
     }
 
     const getNodeId = (fieldNode : string) => {
         if (nodes && nodes.length > 0) {
-            const targetNode =  nodes.find((node) => node.data.label === fieldNode)
+            const targetNode = nodes.find((node) => node.data.label === fieldNode)
 
             if (targetNode) {
                 return targetNode.id
@@ -120,7 +118,9 @@ export const Tools = (props : WhiteboardProps) => {
         if (edgeExists) {
             const updatedEdge : Edge = {...edgeExists , label : distance}
 
-            setEdges((prevEdges) => [...prevEdges , updatedEdge])
+            setEdges((prevEdges) => 
+                prevEdges.map((edge) => edge.id === updatedEdge.id ? updatedEdge : edge)
+            )
             return null
         }
 

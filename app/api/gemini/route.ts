@@ -40,7 +40,7 @@ export async function POST(request : NextRequest) {
             2. Only create an edge if the user explicitly provides a distance or weight for it. If a connection is mentioned but no distance is given, drop the edge entirely — do not create it.
             3. Casual phrasing like "make", "add", "can u", "pls", "gimme", "create" are all valid create-node commands.
             4. If no valid edges exist, return edges: [].
-            5. Node IDs must be lowercase (e.g. "new york). Labels make the first character uppercase (e.g. "New york").
+            5. Node IDs must be lowercase (e.g. "new york"). Labels make the first character uppercase (e.g. "New york").
             6. Only create bidirectional edges if the user explicitly says "between", "and", or otherwise implies both directions. Phrases like "from X to Y" are one-directional — create only one edge from source to target.
             7. All node labels must be unique (case-insensitive). If the user provides duplicate names, only create one node for that name.
             8. Distance must always be a plain number formatted as a string with no units (e.g. "20", "340", "150"). Strip any units like "km", "miles", "m" from the value.
