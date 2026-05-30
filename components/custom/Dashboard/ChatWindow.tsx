@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { GeminiResponse, WhiteboardProps } from "@/lib/types";
 import { useRef, useState } from "react";
-import { excludeExistingNodes, normalizeEdges, normalizeNodes } from "@/lib/utils";
+import { normalizeEdges, normalizeNodes } from "@/lib/utils";
 
 interface Failure {
     error : string
@@ -49,8 +49,7 @@ export const ChatWindow = (props : WhiteboardProps) => {
 
             if (data.valid) {
                 if (data.nodes.length) {
-                    const geminiNodes = excludeExistingNodes(nodes , data.nodes)
-                    const normalNodes = normalizeNodes(geminiNodes)
+                    const normalNodes = normalizeNodes(nodes , data.nodes)
 
                     setNodes((prevNodes) => [...prevNodes , ...normalNodes])
                     setLoading(false)

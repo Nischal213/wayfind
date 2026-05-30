@@ -15,14 +15,11 @@ export const capitalizeWord = (text: string) =>  {
   return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
 }
 
-export const excludeExistingNodes = (nodes : Node[] , geminiNodes : GeminiNodes[]) => {
+export const normalizeNodes = (nodes : Node[] , geminiNodes : GeminiNodes[]) => {
   const nodesSet = new Set(nodes.map((node) => node.data.label))
+  geminiNodes = geminiNodes.filter((gNodes) => !nodesSet.has(gNodes.label))
 
-  return geminiNodes.filter((gNodes) => !nodesSet.has(gNodes.label))
-}
-
-export const normalizeNodes = (geminiNodes : GeminiNodes[]) => {
-   return geminiNodes.map((gNodes) => {
+  return geminiNodes.map((gNodes) => {
     const normalNode : Node = {
       id : gNodes.id,
       type : "custom",
@@ -37,24 +34,25 @@ export const normalizeNodes = (geminiNodes : GeminiNodes[]) => {
    })
 }
 
-export const normalizeEdges = (edges : Edge[], geminiEdges : GeminiEdges[]) => {
-  const edgesSet = new Set(edges.map((edges) => edges.id))
+export const normalizeEdges = (edges : Edge[] , geminiEdges : GeminiEdges[]) => {
+  const edgesRecord : Record<string , Edge> = Object.fromEntries(
+    edges.map((edge) => [edge.id , edge])
+  )
 
   return geminiEdges.map((gEdges) => {
-    const newId = `${gEdges.source}-${gEdges.target}`
-    const reverseExists = edgesSet.has(`${gEdges.target}-${gEdges.source}`)
-    const edgeExists = edgesSet.has(newId)
+    const id = `${gEdges.source}-${gEdges.target}`
+    const reverseExists = `${gEdges.target}-${gEdges.source}` in edgesRecord
+    const edgeExists = edgesRecord[id]
 
     if (edgeExists) {
-      const targetEdge : Edge = edges.find((edge) => edge.id === newId)!
-      const updatedEdge : Edge = {...targetEdge , label : gEdges.distance}
+      const updatedEdge : Edge = {...edgeExists , label : gEdges.distance}
+      edgesRecord[id] = updatedEdge
 
-      edgesSet.add(newId)
       return updatedEdge
     }
 
     const normalEdge : Edge = {
-      id : newId,
+      id : id,
       source : gEdges.source,
       target : gEdges.target,
       label : gEdges.distance,
@@ -69,8 +67,7 @@ export const normalizeEdges = (edges : Edge[], geminiEdges : GeminiEdges[]) => {
       }
     }
 
-    edgesSet.add(newId)
-
+    edgesRecord[id] = normalEdge
     return normalEdge
   })
 }
