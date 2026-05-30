@@ -2,13 +2,13 @@ import { MarkerType, type Node, type Edge } from "@xyflow/react"
 import { DialogBox } from "@/components/common/DialogBox"
 import { CircleMinus, CirclePlus, Spline, SplinePointer } from "lucide-react"
 import { DialogBoxField, DialogBoxProps, WhiteboardProps } from "@/lib/types"
-import { isAlphanumerical , capitalizeWord } from "@/lib/utils"
+import { isAlphanumerical, capitalizeWord } from "@/lib/utils"
 
 
-export const Tools = (props : WhiteboardProps) => {
-    const { nodes , setNodes , edges , setEdges} = props
+export const Tools = (props: WhiteboardProps) => {
+    const { nodes, setNodes, edges, setEdges } = props
 
-    const doesNodeExist = (fieldNode : string) => {
+    const doesNodeExist = (fieldNode: string) => {
         if (nodes.length == 0) {
             return false
         }
@@ -20,19 +20,18 @@ export const Tools = (props : WhiteboardProps) => {
         return findNode
     }
 
-    const getNodeId = (fieldNode : string) => {
+    const getNodeId = (fieldNode: string) => {
         if (nodes && nodes.length > 0) {
-            const targetNode = nodes.find((node) => node.data.label === fieldNode)
+            const targetNode = nodes.find((node) => node.id === fieldNode.toLowerCase())
 
             if (targetNode) {
                 return targetNode.id
             }
         }
-
         throw new Error("Something went wrong. Go debug it.")
     }
 
-    const addNode = (field : DialogBoxField) : string | null => {
+    const addNode = (field: DialogBoxField): string | null => {
         if (!field.Node1) {
             return "Node names can't be empty!"
         }
@@ -45,31 +44,31 @@ export const Tools = (props : WhiteboardProps) => {
             return "Node names must be unique!"
         }
 
-        const newNode : Node = {
-            id : `${field.Node1.toLowerCase()}`,
-            type : "custom",
-            data : { label: capitalizeWord(field.Node1)},
+        const newNode: Node = {
+            id: `${field.Node1.toLowerCase()}`,
+            type: "custom",
+            data: { label: capitalizeWord(field.Node1) },
             position: {
-                x: Math.random() * 400 - 200, 
+                x: Math.random() * 400 - 200,
                 y: Math.random() * 300 + 50
             }
         }
 
-        setNodes((prevNodes) => [...prevNodes , newNode])
+        setNodes((prevNodes) => [...prevNodes, newNode])
 
         return null
     }
 
-    const addNodeProp : DialogBoxProps = {
-        title : "Add node",
-        description : "Use the chatbox if you want to add multiple nodes quickly!",
-        btnName : "Add node",
-        icon : <CirclePlus size={18} />,
-        inputsToCreate : ["Node1"],
-        action : addNode
+    const addNodeProp: DialogBoxProps = {
+        title: "Add node",
+        description: "Use the chatbox if you want to add multiple nodes quickly!",
+        btnName: "Add node",
+        icon: <CirclePlus size={18} />,
+        inputsToCreate: ["Node1"],
+        action: addNode
     }
 
-    const removeNode = (field : DialogBoxField) : string | null => {
+    const removeNode = (field: DialogBoxField): string | null => {
         if (doesNodeExist(field.Node1)) {
             setNodes((prevNodes) => prevNodes.filter((nodes) => nodes.data.label !== capitalizeWord(field.Node1)))
             return null
@@ -78,18 +77,18 @@ export const Tools = (props : WhiteboardProps) => {
         }
     }
 
-    const removeNodeProp : DialogBoxProps = {
-        title : "Remove node",
-        description : "To delete multiple items quickly, hold Shift and drag a selection box around them, then press Backspace!",
-        btnName : "Remove node",
-        icon : <CircleMinus size={18} />,
-        inputsToCreate : ["Node1"],
-        action : removeNode
+    const removeNodeProp: DialogBoxProps = {
+        title: "Remove node",
+        description: "To delete multiple items quickly, hold Shift and drag a selection box around them, then press Backspace!",
+        btnName: "Remove node",
+        icon: <CircleMinus size={18} />,
+        inputsToCreate: ["Node1"],
+        action: removeNode
     }
 
-    const addEdge = (field : DialogBoxField) : string | null => {
-        const node1 = capitalizeWord(field.Node1)
-        const node2 = capitalizeWord(field.Node2)
+    const addEdge = (field: DialogBoxField): string | null => {
+        const node1 = field.Node1.toLowerCase()
+        const node2 = field.Node2.toLowerCase()
         const distance = field.Distance
 
 
@@ -114,11 +113,11 @@ export const Tools = (props : WhiteboardProps) => {
         }
 
         const edgeExists = edges.find((edge) => edge.id === `${node1}-${node2}`)
-        
-        if (edgeExists) {
-            const updatedEdge : Edge = {...edgeExists , label : distance}
 
-            setEdges((prevEdges) => 
+        if (edgeExists) {
+            const updatedEdge: Edge = { ...edgeExists, label: distance }
+
+            setEdges((prevEdges) =>
                 prevEdges.map((edge) => edge.id === updatedEdge.id ? updatedEdge : edge)
             )
             return null
@@ -142,23 +141,23 @@ export const Tools = (props : WhiteboardProps) => {
             },
         }
 
-        setEdges((prevEdges) => [...prevEdges , newEdge])
+        setEdges((prevEdges) => [...prevEdges, newEdge])
 
         return null
     }
 
-    const addEdgeProp : DialogBoxProps = {
-        title : "Add edge",
-        description : "This can also be used to update existing edges!",
-        btnName : "Add edge",
-        icon : <Spline size={18}/>,
-        inputsToCreate : ["Node1" , "Node2" , "Distance"],
-        action : addEdge
+    const addEdgeProp: DialogBoxProps = {
+        title: "Add edge",
+        description: "This can also be used to update existing edges!",
+        btnName: "Add edge",
+        icon: <Spline size={18} />,
+        inputsToCreate: ["Node1", "Node2", "Distance"],
+        action: addEdge
     }
 
-    const removeEdge = (field : DialogBoxField) : string | null => {
-        const node1 = capitalizeWord(field.Node1)
-        const node2 = capitalizeWord(field.Node2)
+    const removeEdge = (field: DialogBoxField): string | null => {
+        const node1 = field.Node1.toLowerCase()
+        const node2 = field.Node2.toLowerCase()
 
         if (!doesNodeExist(node1)) {
             return "First node given doesn't exist!"
@@ -174,17 +173,17 @@ export const Tools = (props : WhiteboardProps) => {
             setEdges((prevEdges) => prevEdges.filter((edge) => edge.id !== `${node1}-${node2}`))
             return null
         } else {
-            return "There is no edge between those nodes!" 
+            return "There is no edge between those nodes!"
         }
     }
 
-    const removeEdgeProp : DialogBoxProps = {
-        title : "Remove edge",
-        description : "To delete multiple items quickly, hold Shift and drag a selection box around them, then press Backspace!",
-        btnName : "Remove edge",
-        icon : <SplinePointer size={18} />,
-        inputsToCreate : ["Node1" , "Node2"],
-        action : removeEdge
+    const removeEdgeProp: DialogBoxProps = {
+        title: "Remove edge",
+        description: "To delete multiple items quickly, hold Shift and drag a selection box around them, then press Backspace!",
+        btnName: "Remove edge",
+        icon: <SplinePointer size={18} />,
+        inputsToCreate: ["Node1", "Node2"],
+        action: removeEdge
     }
 
     return (

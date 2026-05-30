@@ -36,8 +36,18 @@ export interface GeminiEdges {
     distance : string
 }
 
+export interface DeleteGeminiEdges {
+    source : string
+    target : string
+}
+
+type GeminiActions = "create" | "delete" | "mixed"
+
 export interface GeminiResponse {
     valid : boolean
+    action : GeminiActions
     nodes : GeminiNodes[]
     edges : GeminiEdges[]
+    deleteNodes : string[]
+    deleteEdges : DeleteGeminiEdges[]
 }
