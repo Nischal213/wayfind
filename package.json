@@ -12,6 +12,7 @@
     "@clerk/nextjs": "6.39.3",
     "@clerk/themes": "2.4.57",
     "@clerk/types": "4.101.23",
+    "@datastructures-js/priority-queue": "^6.3.5",
     "@google/genai": "^2.7.0",
     "@xyflow/react": "^12.10.2",
     "class-variance-authority": "^0.7.1",

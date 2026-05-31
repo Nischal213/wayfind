@@ -27,6 +27,8 @@ export const ChatWindow = (props: WhiteboardProps) => {
             return
         }
 
+        textAreaRef.current!.value = ""
+
         try {
             const response = await fetch("/api/gemini",
                 {

@@ -8,43 +8,43 @@ import { Input } from "../ui/input"
 import { DialogBoxProps, DialogBoxField } from "@/lib/types"
 
 
-export const DialogBox = (props : DialogBoxProps) => {
-    const { title , description=false , btnName , icon , inputsToCreate , action } = props
-    const [field , setField] = useState<DialogBoxField>({Node1 : "" , Node2 : "" , Distance : ""})
-    const [open , setOpen] = useState(false)
-    const [error , setError] = useState("")
+export const DialogBox = (props: DialogBoxProps) => {
+    const { title, description = false, btnName, icon, inputsToCreate, action } = props
+    const [field, setField] = useState<DialogBoxField>({ Node1: "", Node2: "", Cost: "" })
+    const [open, setOpen] = useState(false)
+    const [error, setError] = useState("")
 
-    const updateField = (e : ChangeEvent<HTMLInputElement>) => {
-        const { name , value } = e.target
+    const updateField = (e: ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target
 
-        setField((prevField) => ({...prevField , [name] : value}))
+        setField((prevField) => ({ ...prevField, [name]: value }))
     }
 
     const onConfirm = () => {
         const error = action(field)
-       
+
         if (error) {
             setError(error)
         } else {
             setError("")
             setOpen(false)
-            setField({Node1 : "" , Node2 : "", Distance : ""})
+            setField({ Node1: "", Node2: "", Cost: "" })
         }
     }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild> 
+            <DialogTrigger asChild>
                 <button
-                onClick={() => {
-                    setError("")
-                    setOpen(true) 
-                    setField({Node1 : "" , Node2 : "", Distance : ""})
-                }}
-                className="flex items-center gap-2 mx-4 mt-4 px-3 py-2 rounded-lg hover:bg-neutral-300 text-sm text-neutral-700"
+                    onClick={() => {
+                        setError("")
+                        setOpen(true)
+                        setField({ Node1: "", Node2: "", Cost: "" })
+                    }}
+                    className="flex items-center gap-2 mx-4 mt-4 px-3 py-2 rounded-lg hover:bg-neutral-300 text-sm text-neutral-700"
                 >
-                {icon}
-                {btnName}
+                    {icon}
+                    {btnName}
                 </button>
             </DialogTrigger>
 
@@ -55,38 +55,38 @@ export const DialogBox = (props : DialogBoxProps) => {
                         <p className="text-sm tracking-tighter leading-4.5 font-medium">
                             {description}
                         </p>
-                    </DialogDescription> 
+                    </DialogDescription>
                 </DialogHeader>
 
                 <FieldGroup>
                     <Field>
-                        {inputsToCreate.map((input , key) => (
+                        {inputsToCreate.map((input, key) => (
                             <div key={key}>
-                                <Label className="mb-2"> {input.length > 5 ? input : input.slice(0,4) + " " + input.slice(4)} </Label>
-                                <Input name={input} value={field[input]} onChange={updateField}/>
+                                <Label className="mb-2"> {input.length > 5 ? input : input.slice(0, 4) + " " + input.slice(4)} </Label>
+                                <Input name={input} value={field[input]} onChange={updateField} />
                             </div>
                         ))}
                     </Field>
 
-                    {error?
-                    <p className='text-red-600 text-center'> {error} </p>
-                    : 
-                    null}
+                    {error ?
+                        <p className='text-red-600 text-center'> {error} </p>
+                        :
+                        null}
                 </FieldGroup>
 
                 <DialogFooter className="flex items-center justify-end gap-3 pt-4">
                     <DialogClose asChild>
                         <button className="px-4 py-2 rounded-lg text-sm font-bold text-gray-700 bg-neutral-50 border border-gray-200 shadow-sm hover:bg-gray-100 transition-colors">
-                        Close
+                            Close
                         </button>
                     </DialogClose>
-                    <button 
-                        onClick={onConfirm} 
+                    <button
+                        onClick={onConfirm}
                         className="px-4 py-2 rounded-lg text-sm font-bold text-[#EDEDED] bg-black hover:bg-neutral-700 transition-colors"
                     >
                         Confirm
                     </button>
-                    </DialogFooter>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     )

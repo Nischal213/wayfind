@@ -30,7 +30,7 @@ export async function POST(request : NextRequest) {
             "valid": boolean,
             "action": "create" | "delete" | "mixed",
             "nodes": [{ "id": "lowercase id", "label": "Display Label" }],
-            "edges": [{ "source": "id", "target": "id", "distance": "string" }],
+            "edges": [{ "source": "id", "target": "id", "cost": "string" }],
             "deleteNodes": ["id1", "id2"],
             "deleteEdges": [{ "source": "id", "target": "id" }]
             }
@@ -46,11 +46,11 @@ export async function POST(request : NextRequest) {
 
             ## Creation Rules
             1. Any mention of named things (places, people, concepts, items) → create a node for each.
-            2. Only create an edge if the user explicitly provides a distance or weight. If a connection is mentioned but no distance is given, drop the edge — do not create it.
+            2. Only create an edge if the user explicitly provides a cost. If a connection is mentioned but no cost is given, drop the edge — do not create it.
             3. Casual phrasing like "make", "add", "can u", "pls", "gimme", "create" are all valid create-node commands.
             4. Node IDs must be lowercase with spaces preserved (e.g. "new york"). Labels capitalise the first letter of each word (e.g. "New York").
             5. All node labels must be unique (case-insensitive). If the user provides duplicate names, only create one node.
-            6. Distance must always be a plain number as a string with no units (e.g. "200", "340"). Strip any units like "km", "miles".
+            6. Cost must always be a plain number as a string with no units (e.g. "200", "-50", "340"). Strip any units like "km", "miles". Negative costs are valid and must be preserved as-is (e.g. "-75").
             7. Only create bidirectional edges if the user says "between", "and", or implies both directions. "from X to Y" is one-directional only.
 
             ## Deletion Rules
@@ -67,10 +67,13 @@ export async function POST(request : NextRequest) {
             {"valid":true,"action":"create","nodes":[{"id":"italy","label":"Italy"},{"id":"france","label":"France"},{"id":"paris","label":"Paris"}],"edges":[],"deleteNodes":[],"deleteEdges":[]}
 
             User: "connect london to paris 200"
-            {"valid":true,"action":"create","nodes":[{"id":"london","label":"London"},{"id":"paris","label":"Paris"}],"edges":[{"source":"london","target":"paris","distance":"200"}],"deleteNodes":[],"deleteEdges":[]}
+            {"valid":true,"action":"create","nodes":[{"id":"london","label":"London"},{"id":"paris","label":"Paris"}],"edges":[{"source":"london","target":"paris","cost":"200"}],"deleteNodes":[],"deleteEdges":[]}
 
             User: "connect new york and mexico 200"
-            {"valid":true,"action":"create","nodes":[{"id":"new york","label":"New York"},{"id":"mexico","label":"Mexico"}],"edges":[{"source":"new york","target":"mexico","distance":"200"},{"source":"mexico","target":"new york","distance":"200"}],"deleteNodes":[],"deleteEdges":[]}
+            {"valid":true,"action":"create","nodes":[{"id":"new york","label":"New York"},{"id":"mexico","label":"Mexico"}],"edges":[{"source":"new york","target":"mexico","cost":"200"},{"source":"mexico","target":"new york","cost":"200"}],"deleteNodes":[],"deleteEdges":[]}
+
+            User: "connect berlin to rome with cost -50"
+            {"valid":true,"action":"create","nodes":[{"id":"berlin","label":"Berlin"},{"id":"rome","label":"Rome"}],"edges":[{"source":"berlin","target":"rome","cost":"-50"}],"deleteNodes":[],"deleteEdges":[]}
 
             User: "delete paris"
             {"valid":true,"action":"delete","nodes":[],"edges":[],"deleteNodes":["paris"],"deleteEdges":[]}
@@ -88,7 +91,7 @@ export async function POST(request : NextRequest) {
             {"valid":true,"action":"mixed","nodes":[{"id":"rome","label":"Rome"}],"edges":[],"deleteNodes":["paris"],"deleteEdges":[]}
 
             User: "connect berlin to rome 150, remove the edge from london to paris"
-            {"valid":true,"action":"mixed","nodes":[{"id":"berlin","label":"Berlin"},{"id":"rome","label":"Rome"}],"edges":[{"source":"berlin","target":"rome","distance":"150"}],"deleteNodes":[],"deleteEdges":[{"source":"london","target":"paris"}]}
+            {"valid":true,"action":"mixed","nodes":[{"id":"berlin","label":"Berlin"},{"id":"rome","label":"Rome"}],"edges":[{"source":"berlin","target":"rome","cost":"150"}],"deleteNodes":[],"deleteEdges":[{"source":"london","target":"paris"}]}
 
             User: "what's the weather"
             {"valid":false,"action":"create","nodes":[],"edges":[],"deleteNodes":[],"deleteEdges":[]}

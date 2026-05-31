@@ -1,12 +1,12 @@
 import { type Node , type Edge } from "@xyflow/react"
 import { Dispatch, ReactNode, SetStateAction } from "react"
 
-type input = "Node1" | "Node2" | "Distance"
+type input = "Node1" | "Node2" | "Cost"
 
 export interface DialogBoxField {
     Node1 : string
     Node2 : string
-    Distance : string
+    Cost : string
 }
 
 export interface DialogBoxProps {
@@ -33,7 +33,7 @@ export interface GeminiNodes {
 export interface GeminiEdges {
     source : string
     target : string
-    distance : string
+    cost : string
 }
 
 export interface DeleteGeminiEdges {

@@ -1,8 +1,8 @@
 import { MarkerType, type Node, type Edge } from "@xyflow/react"
 import { DialogBox } from "@/components/common/DialogBox"
-import { CircleMinus, CirclePlus, Spline, SplinePointer } from "lucide-react"
+import { ChartNetwork, CircleMinus, CirclePlus, Spline, SplinePointer } from "lucide-react"
 import { DialogBoxField, DialogBoxProps, WhiteboardProps } from "@/lib/types"
-import { isAlphanumerical, capitalizeWord } from "@/lib/utils"
+import { isAlphanumerical, capitalizeWord, bellmanford, djikstra } from "@/lib/utils"
 
 
 export const Tools = (props: WhiteboardProps) => {
@@ -89,8 +89,11 @@ export const Tools = (props: WhiteboardProps) => {
     const addEdge = (field: DialogBoxField): string | null => {
         const node1 = field.Node1.toLowerCase()
         const node2 = field.Node2.toLowerCase()
-        const distance = field.Distance
+        const cost = field.Cost
 
+        if (nodes.length <= 1) {
+            return "Can't make an edge when there's less than one node!"
+        }
 
         if (!doesNodeExist(node1)) {
             return "First node given doesn't exist!"
@@ -104,18 +107,18 @@ export const Tools = (props: WhiteboardProps) => {
             return "Can't make an edge to the same node!"
         }
 
-        if (distance.trim() === "") {
-            return "Distance can't be empty!"
+        if (cost.trim() === "") {
+            return "Cost can't be empty!"
         }
 
-        if (isNaN(Number(distance))) {
-            return "Distance must be a number!"
+        if (isNaN(Number(cost))) {
+            return "Cost must be a number!"
         }
 
         const edgeExists = edges.find((edge) => edge.id === `${node1}-${node2}`)
 
         if (edgeExists) {
-            const updatedEdge: Edge = { ...edgeExists, label: distance }
+            const updatedEdge: Edge = { ...edgeExists, label: cost }
 
             setEdges((prevEdges) =>
                 prevEdges.map((edge) => edge.id === updatedEdge.id ? updatedEdge : edge)
@@ -129,10 +132,14 @@ export const Tools = (props: WhiteboardProps) => {
             id: `${node1}-${node2}`,
             source: `${getNodeId(node1)}`,
             target: `${getNodeId(node2)}`,
-            label: `${field.Distance}`,
+            label: `${field.Cost}`,
             type: "smoothstep",
             sourceHandle: reverseExists ? "bottom" : "top",
             targetHandle: reverseExists ? "bottom" : "top",
+            zIndex: 0,
+            style: {
+                stroke: `#b1b1b7`
+            },
             markerEnd: {
                 type: MarkerType.ArrowClosed,
                 width: 20,
@@ -151,7 +158,7 @@ export const Tools = (props: WhiteboardProps) => {
         description: "This can also be used to update existing edges!",
         btnName: "Add edge",
         icon: <Spline size={18} />,
-        inputsToCreate: ["Node1", "Node2", "Distance"],
+        inputsToCreate: ["Node1", "Node2", "Cost"],
         action: addEdge
     }
 
@@ -186,12 +193,77 @@ export const Tools = (props: WhiteboardProps) => {
         action: removeEdge
     }
 
+    const findPath = (field: DialogBoxField): string | null => {
+        const node1 = field.Node1.toLowerCase()
+        const node2 = field.Node2.toLowerCase()
+
+        if (nodes.length <= 1) {
+            return "Can't find a path when there's less than one node!"
+        }
+
+        if (!doesNodeExist(node1)) {
+            return "First node given doesn't exist!"
+        }
+
+        if (!doesNodeExist(node2)) {
+            return "Second node given doesn't exist!"
+        }
+
+        const useBellManFord = edges.some((edge) => Number(edge.label) < 0)
+
+        let pathSet = new Set<string>()
+
+        if (useBellManFord) {
+            pathSet = bellmanford(nodes, edges, node1, node2)
+        } else {
+            pathSet = djikstra(nodes, edges, node1, node2)
+        }
+
+        if (pathSet.size) {
+            const updatedEdges = edges.map((edge) => {
+                const isPath = pathSet.has(edge.id)
+                const color = isPath ? "#10B981" : "#b1b1b7"
+
+                return {
+                    ...edge,
+                    zIndex: isPath ? 1 : 0,
+                    style: {
+                        ...edge.style,
+                        stroke: color
+                    },
+                    markerEnd: {
+                        type: MarkerType.ArrowClosed,
+                        width: 20,
+                        height: 20,
+                        color: color
+                    }
+                }
+            })
+
+            setEdges(updatedEdges)
+            return null
+        } else {
+            return "No path found between the nodes!"
+        }
+
+    }
+
+    const findPathProp: DialogBoxProps = {
+        title: "Find shortest path",
+        description: "Uses Djikstra's algorithm if all costs are positive otherwise uses Bellman-Ford algorithm!",
+        btnName: "Find path",
+        icon: <ChartNetwork size={18} />,
+        inputsToCreate: ["Node1", "Node2"],
+        action: findPath
+    }
+
     return (
         <>
             <DialogBox {...addNodeProp}></DialogBox>
             <DialogBox {...removeNodeProp}></DialogBox>
             <DialogBox {...addEdgeProp}></DialogBox>
             <DialogBox {...removeEdgeProp}></DialogBox>
+            <DialogBox {...findPathProp}></DialogBox>
         </>
     )
 
