@@ -5,12 +5,12 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Field, FieldGroup } from "../ui/field"
 import { Label } from "../ui/label"
 import { Input } from "../ui/input"
-import { DialogBoxProps, DialogBoxField } from "@/lib/types"
+import { ToolsDialogBoxProps, ToolsDialogBoxField } from "@/lib/types"
 
 
-export const DialogBox = (props: DialogBoxProps) => {
-    const { title, description = false, btnName, icon, inputsToCreate, action } = props
-    const [field, setField] = useState<DialogBoxField>({ Node1: "", Node2: "", Cost: "" })
+export const ToolsDialogBox = (props: ToolsDialogBoxProps) => {
+    const { title, description, btnName, icon, inputsToCreate, action } = props
+    const [field, setField] = useState<ToolsDialogBoxField>({ Node1: "", Node2: "", Cost: "" })
     const [open, setOpen] = useState(false)
     const [error, setError] = useState("")
 
@@ -62,7 +62,7 @@ export const DialogBox = (props: DialogBoxProps) => {
                     <Field>
                         {inputsToCreate.map((input, key) => (
                             <div key={key}>
-                                <Label className="mb-2"> {input.length > 5 ? input : input.slice(0, 4) + " " + input.slice(4)} </Label>
+                                <Label className="mb-2"> {input.length === 5 ? input.slice(0, 4) + " " + input.slice(4) : input} </Label>
                                 <Input name={input} value={field[input]} onChange={updateField} />
                             </div>
                         ))}

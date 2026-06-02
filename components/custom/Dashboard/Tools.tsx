@@ -1,7 +1,7 @@
 import { MarkerType, type Node, type Edge } from "@xyflow/react"
-import { DialogBox } from "@/components/common/DialogBox"
+import { ToolsDialogBox } from "@/components/common/ToolsDialogBox"
 import { ChartNetwork, CircleMinus, CirclePlus, Spline, SplinePointer } from "lucide-react"
-import { DialogBoxField, DialogBoxProps, WhiteboardProps } from "@/lib/types"
+import { ToolsDialogBoxField, ToolsDialogBoxProps, WhiteboardProps } from "@/lib/types"
 import { isAlphanumerical, capitalizeWord, bellmanford, djikstra } from "@/lib/utils"
 
 
@@ -31,7 +31,7 @@ export const Tools = (props: WhiteboardProps) => {
         throw new Error("Something went wrong. Go debug it.")
     }
 
-    const addNode = (field: DialogBoxField): string | null => {
+    const addNode = (field: ToolsDialogBoxField): string | null => {
         if (!field.Node1) {
             return "Node names can't be empty!"
         }
@@ -59,7 +59,7 @@ export const Tools = (props: WhiteboardProps) => {
         return null
     }
 
-    const addNodeProp: DialogBoxProps = {
+    const addNodeProp: ToolsDialogBoxProps = {
         title: "Add node",
         description: "Use the chatbox if you want to add multiple nodes quickly!",
         btnName: "Add node",
@@ -68,7 +68,7 @@ export const Tools = (props: WhiteboardProps) => {
         action: addNode
     }
 
-    const removeNode = (field: DialogBoxField): string | null => {
+    const removeNode = (field: ToolsDialogBoxField): string | null => {
         if (doesNodeExist(field.Node1)) {
             setNodes((prevNodes) => prevNodes.filter((nodes) => nodes.data.label !== capitalizeWord(field.Node1)))
             return null
@@ -77,7 +77,7 @@ export const Tools = (props: WhiteboardProps) => {
         }
     }
 
-    const removeNodeProp: DialogBoxProps = {
+    const removeNodeProp: ToolsDialogBoxProps = {
         title: "Remove node",
         description: "To delete multiple items quickly, hold Shift and drag a selection box around them, then press Backspace!",
         btnName: "Remove node",
@@ -86,7 +86,7 @@ export const Tools = (props: WhiteboardProps) => {
         action: removeNode
     }
 
-    const addEdge = (field: DialogBoxField): string | null => {
+    const addEdge = (field: ToolsDialogBoxField): string | null => {
         const node1 = field.Node1.toLowerCase()
         const node2 = field.Node2.toLowerCase()
         const cost = field.Cost
@@ -153,7 +153,7 @@ export const Tools = (props: WhiteboardProps) => {
         return null
     }
 
-    const addEdgeProp: DialogBoxProps = {
+    const addEdgeProp: ToolsDialogBoxProps = {
         title: "Add edge",
         description: "This can also be used to update existing edges!",
         btnName: "Add edge",
@@ -162,7 +162,7 @@ export const Tools = (props: WhiteboardProps) => {
         action: addEdge
     }
 
-    const removeEdge = (field: DialogBoxField): string | null => {
+    const removeEdge = (field: ToolsDialogBoxField): string | null => {
         const node1 = field.Node1.toLowerCase()
         const node2 = field.Node2.toLowerCase()
 
@@ -184,7 +184,7 @@ export const Tools = (props: WhiteboardProps) => {
         }
     }
 
-    const removeEdgeProp: DialogBoxProps = {
+    const removeEdgeProp: ToolsDialogBoxProps = {
         title: "Remove edge",
         description: "To delete multiple items quickly, hold Shift and drag a selection box around them, then press Backspace!",
         btnName: "Remove edge",
@@ -193,7 +193,7 @@ export const Tools = (props: WhiteboardProps) => {
         action: removeEdge
     }
 
-    const findPath = (field: DialogBoxField): string | null => {
+    const findPath = (field: ToolsDialogBoxField): string | null => {
         const node1 = field.Node1.toLowerCase()
         const node2 = field.Node2.toLowerCase()
 
@@ -248,7 +248,7 @@ export const Tools = (props: WhiteboardProps) => {
 
     }
 
-    const findPathProp: DialogBoxProps = {
+    const findPathProp: ToolsDialogBoxProps = {
         title: "Find shortest path",
         description: "Uses Djikstra's algorithm if all costs are positive otherwise uses Bellman-Ford algorithm!",
         btnName: "Find path",
@@ -259,11 +259,11 @@ export const Tools = (props: WhiteboardProps) => {
 
     return (
         <>
-            <DialogBox {...addNodeProp}></DialogBox>
-            <DialogBox {...removeNodeProp}></DialogBox>
-            <DialogBox {...addEdgeProp}></DialogBox>
-            <DialogBox {...removeEdgeProp}></DialogBox>
-            <DialogBox {...findPathProp}></DialogBox>
+            <ToolsDialogBox {...addNodeProp}></ToolsDialogBox>
+            <ToolsDialogBox {...removeNodeProp}></ToolsDialogBox>
+            <ToolsDialogBox {...addEdgeProp}></ToolsDialogBox>
+            <ToolsDialogBox {...removeEdgeProp}></ToolsDialogBox>
+            <ToolsDialogBox {...findPathProp}></ToolsDialogBox>
         </>
     )
 

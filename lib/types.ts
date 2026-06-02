@@ -3,19 +3,28 @@ import { Dispatch, ReactNode, SetStateAction } from "react"
 
 type input = "Node1" | "Node2" | "Cost"
 
-export interface DialogBoxField {
+export interface ToolsDialogBoxField {
     Node1 : string
     Node2 : string
     Cost : string
 }
 
-export interface DialogBoxProps {
+export interface ToolsDialogBoxProps {
     title : string
     description : string
     btnName : string
     icon : ReactNode
     inputsToCreate : input[]
-    action : (field : DialogBoxField) => string | null
+    action : (field : ToolsDialogBoxField) => string | null
+}
+
+export interface UtilsDialogBoxProps {
+    title: string
+    description: string
+    btnName: string
+    icon: ReactNode
+    inputName: string
+    action: (graphName: string) => Promise<string | null>
 }
 
 export interface WhiteboardProps {
@@ -50,4 +59,15 @@ export interface GeminiResponse {
     edges : GeminiEdges[]
     deleteNodes : string[]
     deleteEdges : DeleteGeminiEdges[]
+}
+
+export interface DbQueryResponse {
+    success: boolean,
+    error: string,
+    result: boolean
+}
+
+export interface DbActionResponse {
+    success: boolean,
+    error: string
 }
