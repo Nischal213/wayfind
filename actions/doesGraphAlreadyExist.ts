@@ -12,10 +12,7 @@ export const doesGraphAlreadyExist = async (email: string, graphName:string) : P
     const supabase = createClient(url , key)
     const { data, error } = await supabase
         .from("users")
-        .select(`
-            id,
-            graphs!inner ( id, name )
-        `)
+        .select(`graphs!inner(id)`)
         .eq("email", email)
         .eq("graphs.name", graphName)
         .maybeSingle()
@@ -25,7 +22,7 @@ export const doesGraphAlreadyExist = async (email: string, graphName:string) : P
     if (data) {
         return { success: true, error: "", result: true }
     } else {
-        return { success:true , error: "", result: false }
+        return { success: true , error: "", result: false }
     }
 
 }
