@@ -1,12 +1,15 @@
 import { MarkerType, type Node, type Edge } from "@xyflow/react"
 import { ToolsDialogBox } from "@/components/common/ToolsDialogBox"
 import { ChartNetwork, CircleMinus, CirclePlus, Spline, SplinePointer } from "lucide-react"
-import { ToolsDialogBoxField, ToolsDialogBoxProps, WhiteboardProps } from "@/lib/types"
-import { isAlphanumerical, capitalizeWord, bellmanford, djikstra } from "@/lib/utils"
+import { ToolsDialogBoxField, ToolsDialogBoxProps, ToolSidebarProps } from "@/lib/types"
+import { isAlphanumerical, capitalizeWord, bellmanford, djikstra, saveGraph } from "@/lib/utils"
+import { useClerk } from "@clerk/nextjs"
 
 
-export const Tools = (props: WhiteboardProps) => {
-    const { nodes, setNodes, edges, setEdges } = props
+export const Tools = (props: ToolSidebarProps) => {
+    const { nodes, setNodes, edges, setEdges, currentGraph } = props
+    const { user } = useClerk()
+    const userEmail = user?.primaryEmailAddress?.emailAddress
 
     const doesNodeExist = (fieldNode: string) => {
         if (nodes.length == 0) {
@@ -31,7 +34,7 @@ export const Tools = (props: WhiteboardProps) => {
         throw new Error("Something went wrong. Go debug it.")
     }
 
-    const addNode = (field: ToolsDialogBoxField): string | null => {
+    const addNode = async (field: ToolsDialogBoxField): Promise<string | null> => {
         if (!field.Node1) {
             return "Node names can't be empty!"
         }
@@ -54,8 +57,12 @@ export const Tools = (props: WhiteboardProps) => {
             }
         }
 
-        setNodes((prevNodes) => [...prevNodes, newNode])
+        const save = [...nodes, newNode]
+        const error = await saveGraph(userEmail, currentGraph, save, undefined)
 
+        if (error) return error
+
+        setNodes(save)
         return null
     }
 
@@ -68,9 +75,23 @@ export const Tools = (props: WhiteboardProps) => {
         action: addNode
     }
 
-    const removeNode = (field: ToolsDialogBoxField): string | null => {
+    const removeNode = async (field: ToolsDialogBoxField): Promise<string | null> => {
+        const node1 = field.Node1.toLowerCase()
+
         if (doesNodeExist(field.Node1)) {
-            setNodes((prevNodes) => prevNodes.filter((nodes) => nodes.data.label !== capitalizeWord(field.Node1)))
+            const save1 = nodes.filter((node) => node.data.label !== capitalizeWord(node1))
+            const save2 = edges.filter((edge) => edge.target !== node1 && edge.source !== node1)
+            const error = await saveGraph(
+                userEmail,
+                currentGraph,
+                save1,
+                save2
+            )
+
+            if (error) return error
+
+            setNodes(save1)
+            setEdges(save2)
             return null
         } else {
             return "That node doesn't exist!"
@@ -86,7 +107,7 @@ export const Tools = (props: WhiteboardProps) => {
         action: removeNode
     }
 
-    const addEdge = (field: ToolsDialogBoxField): string | null => {
+    const addEdge = async (field: ToolsDialogBoxField): Promise<string | null> => {
         const node1 = field.Node1.toLowerCase()
         const node2 = field.Node2.toLowerCase()
         const cost = field.Cost
@@ -119,10 +140,18 @@ export const Tools = (props: WhiteboardProps) => {
 
         if (edgeExists) {
             const updatedEdge: Edge = { ...edgeExists, label: cost }
+            const save = edges.map((edge) => edge.id === updatedEdge.id ? updatedEdge : edge)
 
-            setEdges((prevEdges) =>
-                prevEdges.map((edge) => edge.id === updatedEdge.id ? updatedEdge : edge)
+            const error = await saveGraph(
+                userEmail,
+                currentGraph,
+                undefined,
+                save
             )
+
+            if (error) return null
+
+            setEdges(save)
             return null
         }
 
@@ -148,8 +177,11 @@ export const Tools = (props: WhiteboardProps) => {
             },
         }
 
-        setEdges((prevEdges) => [...prevEdges, newEdge])
+        const error = await saveGraph(userEmail, currentGraph, undefined, [...edges, newEdge])
 
+        if (error) return error
+
+        setEdges((prevEdges) => [...prevEdges, newEdge])
         return null
     }
 
@@ -162,7 +194,7 @@ export const Tools = (props: WhiteboardProps) => {
         action: addEdge
     }
 
-    const removeEdge = (field: ToolsDialogBoxField): string | null => {
+    const removeEdge = async (field: ToolsDialogBoxField): Promise<string | null> => {
         const node1 = field.Node1.toLowerCase()
         const node2 = field.Node2.toLowerCase()
 
@@ -177,7 +209,17 @@ export const Tools = (props: WhiteboardProps) => {
         const targetEdge = edges.find((edge) => edge.id === `${node1}-${node2}`)
 
         if (targetEdge) {
-            setEdges((prevEdges) => prevEdges.filter((edge) => edge.id !== `${node1}-${node2}`))
+            const save = edges.filter((edge) => edge.id !== `${node1}-${node2}`)
+            const error = await saveGraph(
+                userEmail,
+                currentGraph,
+                undefined,
+                save
+            )
+
+            if (error) return error
+
+            setEdges(save)
             return null
         } else {
             return "There is no edge between those nodes!"
@@ -193,7 +235,7 @@ export const Tools = (props: WhiteboardProps) => {
         action: removeEdge
     }
 
-    const findPath = (field: ToolsDialogBoxField): string | null => {
+    const findPath = async (field: ToolsDialogBoxField): Promise<string | null> => {
         const node1 = field.Node1.toLowerCase()
         const node2 = field.Node2.toLowerCase()
 

@@ -1,11 +1,21 @@
 import { createGraph } from "@/actions/createGraph"
+import { deleteGraph } from "@/actions/deleteGraph"
 import { UtilsDialogBox } from "@/components/common/UtilsDialogBox"
 import { SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar"
 import { UtilsDialogBoxProps } from "@/lib/types"
 import { useClerk } from "@clerk/nextjs"
 import { MessageCircle, CircleMinus } from "lucide-react"
+import { Dispatch, SetStateAction } from "react"
 
-export const CustomSidebarUtils = () => {
+interface CustomSidebarUtilsProps {
+    graphNames: string[]
+    setGraphNames: Dispatch<SetStateAction<string[]>>
+    currentGraph: string
+    setCurrentGraph: Dispatch<SetStateAction<string>>
+}
+
+export const CustomSidebarUtils = (props: CustomSidebarUtilsProps) => {
+    const { graphNames, setGraphNames, currentGraph, setCurrentGraph } = props
     const { user } = useClerk()
     const userEmail = user?.primaryEmailAddress?.emailAddress
 
@@ -15,7 +25,12 @@ export const CustomSidebarUtils = () => {
 
         const { success, error } = await createGraph(userEmail, userInput)
 
-        return !success ? error : null
+        if (success) {
+            setGraphNames((prevGraphNames) => [userInput, ...prevGraphNames])
+            return null
+        } else {
+            return error
+        }
     }
 
     const makeNewGraphProp: UtilsDialogBoxProps = {
@@ -28,6 +43,18 @@ export const CustomSidebarUtils = () => {
     }
 
     const removeGraph = async (userInput: string): Promise<string | null> => {
+        if (!userEmail) return "Clerk hasn't loaded in yet please wait!"
+        if (!userInput.length) return "Graph names can't be empty!"
+
+        const { success, error } = await deleteGraph(userEmail, userInput)
+
+        if (!success) return error
+
+        if (userInput === currentGraph) {
+            setCurrentGraph("")
+        }
+
+        setGraphNames(graphNames.filter((graphName) => graphName !== userInput))
         return null
     }
 

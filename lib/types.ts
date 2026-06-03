@@ -15,7 +15,7 @@ export interface ToolsDialogBoxProps {
     btnName : string
     icon : ReactNode
     inputsToCreate : input[]
-    action : (field : ToolsDialogBoxField) => string | null
+    action : (field : ToolsDialogBoxField) => Promise<string | null>
 }
 
 export interface UtilsDialogBoxProps {
@@ -32,6 +32,10 @@ export interface WhiteboardProps {
     setNodes : Dispatch<SetStateAction<Node[]>>
     edges : Edge[]
     setEdges : Dispatch<SetStateAction<Edge[]>>
+}
+
+export interface ToolSidebarProps extends WhiteboardProps {
+    currentGraph: string
 }
 
 export interface GeminiNodes {
@@ -61,10 +65,10 @@ export interface GeminiResponse {
     deleteEdges : DeleteGeminiEdges[]
 }
 
-export interface DbQueryResponse {
+export interface DbQueryResponse<T> {
     success: boolean,
     error: string,
-    result: boolean
+    result: T
 }
 
 export interface DbActionResponse {

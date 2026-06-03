@@ -27,8 +27,8 @@ export const createGraph = async (email: string, graphName: string) : Promise<Db
 
     const { error: insertError } = await supabase.from("graphs").insert([{
         name: graphName,
-        nodes: [{}],
-        edges: [{}],
+        nodes: [],
+        edges: [],
         user_id: userData.id
     }])
 

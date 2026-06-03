@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge"
 import { GeminiEdges, GeminiNodes } from "./types"
 import { MarkerType, type Edge, type Node } from "@xyflow/react"
 import { MinPriorityQueue } from '@datastructures-js/priority-queue'
+import { updateGraphDetails } from "@/actions/updateGraphDetails"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -179,4 +180,15 @@ export const bellmanford = (nodes : Node[] , edges : Edge[], startNode : string 
     }
     
     return getShortestPathEdges(bellmanfordTable , endNode)
+}
+
+
+export const saveGraph = async (email: string | undefined, currentGraph: string, nodes?: Node[], edges?: Edge[]) => {
+    if (!email) return "Please wait for clerk to load!"
+
+    const { success, error } = await updateGraphDetails(email, currentGraph, nodes, edges)
+
+    if (!success) return error
+
+    return null
 }

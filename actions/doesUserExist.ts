@@ -3,7 +3,7 @@
 import { DbQueryResponse } from "@/lib/types"
 import { createClient } from "@supabase/supabase-js"
 
-export const doesUserExist = async (email : string | undefined) : Promise<DbQueryResponse> => {
+export const doesUserExist = async (email : string | undefined) : Promise<DbQueryResponse<boolean>> => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY
 

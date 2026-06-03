@@ -18,13 +18,20 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { LogOut } from "lucide-react"
 import { RecentGraphs } from "./RecentGraphs"
 import { CustomSidebarUtils } from "./CustomSidebarUtils"
+import { Dispatch, SetStateAction, useState } from "react"
+import { Edge, Node } from "@xyflow/react"
 
-const testProps = {
-    graphs: Array<string>(20).fill("Hello world!")
+interface CustomSidebarProps {
+    currentGraph: string
+    setCurrentGraph: Dispatch<SetStateAction<string>>
+    setNodes: Dispatch<SetStateAction<Node[]>>
+    setEdges: Dispatch<SetStateAction<Edge[]>>
 }
 
-export const CustomSidebar = () => {
+export const CustomSidebar = (prop: CustomSidebarProps) => {
+    const { currentGraph, setCurrentGraph, setNodes, setEdges } = prop
     const { user, signOut } = useClerk()
+    const [graphNames, setGraphNames] = useState<string[]>([])
 
     return (
         <TooltipProvider>
@@ -37,13 +44,20 @@ export const CustomSidebar = () => {
                         <SidebarTrigger size="lg" style={{ color: "black" }} />
                     </div>
 
-                    <CustomSidebarUtils></CustomSidebarUtils>
+                    <CustomSidebarUtils currentGraph={currentGraph} setCurrentGraph={setCurrentGraph} graphNames={graphNames} setGraphNames={setGraphNames}></CustomSidebarUtils>
                 </SidebarHeader>
 
                 <SidebarContent>
                     <SidebarGroup>
                         <SidebarGroupLabel> Recent graphs </SidebarGroupLabel>
-                        <RecentGraphs {...testProps}></RecentGraphs>
+                        <RecentGraphs
+                            graphNames={graphNames}
+                            setGraphNames={setGraphNames}
+                            setCurrentGraph={setCurrentGraph}
+                            setNodes={setNodes}
+                            setEdges={setEdges}
+                        >
+                        </RecentGraphs>
                     </SidebarGroup>
                 </SidebarContent>
 

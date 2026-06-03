@@ -20,8 +20,8 @@ export const ToolsDialogBox = (props: ToolsDialogBoxProps) => {
         setField((prevField) => ({ ...prevField, [name]: value }))
     }
 
-    const onConfirm = () => {
-        const error = action(field)
+    const onConfirm = async () => {
+        const error = await action(field)
 
         if (error) {
             setError(error)

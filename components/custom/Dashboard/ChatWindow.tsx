@@ -1,19 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { GeminiResponse, WhiteboardProps } from "@/lib/types";
+import { GeminiResponse, ToolSidebarProps } from "@/lib/types";
 import { useRef, useState } from "react";
-import { normalizeEdges, normalizeNodes } from "@/lib/utils";
+import { normalizeEdges, normalizeNodes, saveGraph } from "@/lib/utils";
+import { useClerk } from "@clerk/nextjs";
 
 interface Failure {
     error: string
     status: number
 }
 
-export const ChatWindow = (props: WhiteboardProps) => {
-    const { nodes, setNodes, edges, setEdges } = props
+export const ChatWindow = (props: ToolSidebarProps) => {
+    const { nodes, setNodes, edges, setEdges, currentGraph } = props
     const textAreaRef = useRef<HTMLTextAreaElement>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+    const { user } = useClerk()
+    const userEmail = user?.primaryEmailAddress?.emailAddress
 
     const sendMessage = async () => {
         setError("")
@@ -53,26 +56,62 @@ export const ChatWindow = (props: WhiteboardProps) => {
 
                 if (data.nodes.length && data.action !== "delete") {
                     const normalNodes = normalizeNodes(nodes, data.nodes)
-                    console.log("Making nodes...")
-                    setNodes((prevNodes) => [...prevNodes, ...normalNodes])
+                    const save = [...nodes, ...normalNodes]
+                    const error = await saveGraph(
+                        userEmail,
+                        currentGraph,
+                        save,
+                        undefined
+                    )
+
+                    if (error) { setError(error); return }
+                    setNodes(save)
                 }
 
                 if (data.deleteNodes.length && data.action !== "create") {
                     const deleteNodesSet = new Set(data.deleteNodes)
-                    console.log("Deleting nodes...")
-                    setNodes((prevNodes) => prevNodes.filter((node) => !deleteNodesSet.has(node.id)))
+                    const save1 = nodes.filter((node) => !deleteNodesSet.has(node.id))
+                    const save2 = edges.filter((edge) =>
+                        !deleteNodesSet.has(edge.source) &&
+                        !deleteNodesSet.has(edge.target)
+                    )
+                    const error = await saveGraph(
+                        userEmail,
+                        currentGraph,
+                        save1,
+                        save2
+                    )
+
+                    if (error) { setError(error); return }
+                    setNodes(save1)
+                    setEdges(save2)
                 }
 
                 if (data.edges.length && data.action !== "delete") {
                     const normalEdges = normalizeEdges(edges, data.edges)
-                    console.log("Making edges...")
+                    const error = await saveGraph(
+                        userEmail,
+                        currentGraph,
+                        undefined,
+                        normalEdges
+                    )
+
+                    if (error) { setError(error); return }
                     setEdges(normalEdges)
                 }
 
                 if (data.deleteEdges.length && data.action !== "create") {
                     const deleteEdgesSet = new Set(data.deleteEdges.map((edge) => `${edge.source}-${edge.target}`))
-                    console.log("Deleting edges...")
-                    setEdges((prevEdges) => prevEdges.filter((edge) => !deleteEdgesSet.has(edge.id)))
+                    const save = edges.filter((edge) => !deleteEdgesSet.has(edge.id))
+                    const error = await saveGraph(
+                        userEmail,
+                        currentGraph,
+                        undefined,
+                        save
+                    )
+
+                    if (error) { setError(error); return }
+                    setEdges(save)
                 }
 
                 setLoading(false)

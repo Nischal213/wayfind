@@ -8,16 +8,17 @@ import { useEffect, useState } from "react";
 import { type Edge, type Node } from "@xyflow/react";
 import { createUser } from "@/actions/createUser";
 import { useAuth, useClerk } from "@clerk/nextjs";
+import { ChartNoAxesColumnIncreasing } from "lucide-react";
 
 export default function DashBoardPage() {
     const [nodes, setNodes] = useState<Node[]>([])
     const [edges, setEdges] = useState<Edge[]>([])
+    const [currentGraph, setCurrentGraph] = useState<string>("")
     const { isLoaded, isSignedIn } = useAuth()
     const { user } = useClerk()
+    const userEmail = user?.primaryEmailAddress?.emailAddress
 
     useEffect(() => {
-        const userEmail = user?.primaryEmailAddress?.emailAddress
-
         if (!isLoaded || !isSignedIn || !userEmail) return
 
         const logUserEvent = async () => {
@@ -29,14 +30,37 @@ export default function DashBoardPage() {
         }
 
         logUserEvent()
-    }, [isLoaded, isSignedIn, user?.primaryEmailAddress?.emailAddress])
+    }, [isLoaded, isSignedIn, userEmail])
 
     return (
         <SidebarProvider>
             <div className="flex h-screen w-screen bg-white">
-                <CustomSidebar />
-                <Whiteboard nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} />
-                <ToolSideBar nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} />
+                <CustomSidebar currentGraph={currentGraph} setCurrentGraph={setCurrentGraph} setNodes={setNodes} setEdges={setEdges} />
+                {currentGraph ?
+                    <>
+                        <Whiteboard nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} />
+                        <ToolSideBar nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} currentGraph={currentGraph} />
+                    </>
+                    :
+                    <div className="flex flex-col items-center justify-center w-full min-h-[52vh] px-6 text-center select-none">
+                        <div className="flex flex-col items-center max-w-105">
+
+                            <div className="flex animate-fade-in-up [--delay:0.1s] items-center justify-center w-12 h-12 rounded-lg border border-stone-200 mb-6">
+                                <ChartNoAxesColumnIncreasing className="w-5 h-5 text-black" />
+                            </div>
+
+                            <h2 className="animate-fade-in-up [--delay:0.35s] text-lg font-medium text-stone-800 mb-2 leading-snug">
+                                Welcome to your workspace
+                            </h2>
+
+                            <p className="animate-fade-in-up [--delay:0.55s] text-sm text-stone-500 leading-relaxed">
+                                Your whiteboard is ready. Load a saved graph to pick up where you left off,
+                                or create a new graph to start visualising your data.
+                            </p>
+
+                        </div>
+                    </div>
+                }
             </div>
         </SidebarProvider>
     )
