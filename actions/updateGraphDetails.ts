@@ -6,7 +6,7 @@ import { Edge, Node } from "@xyflow/react"
 import { DbActionResponse } from "@/lib/types"
 
 export const updateGraphDetails = async (
-    email: string, 
+    email: string | undefined, 
     graphName: string, 
     nodes?: Node[], 
     edges?: Edge[]

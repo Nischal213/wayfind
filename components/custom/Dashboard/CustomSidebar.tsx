@@ -1,6 +1,6 @@
 "use client"
 
-import { useClerk } from "@clerk/nextjs"
+import { useClerk, useSignIn } from "@clerk/nextjs"
 import {
     Sidebar,
     SidebarContent,
@@ -30,6 +30,7 @@ interface CustomSidebarProps {
 
 export const CustomSidebar = (prop: CustomSidebarProps) => {
     const { currentGraph, setCurrentGraph, setNodes, setEdges } = prop
+    const { signIn } = useSignIn()
     const { user, signOut } = useClerk()
     const [graphNames, setGraphNames] = useState<string[]>([])
 
@@ -79,7 +80,11 @@ export const CustomSidebar = (prop: CustomSidebarProps) => {
                             <SidebarMenuButton
                                 tooltip="Logout"
                                 className="h-8 w-8 shrink-0 flex items-center justify-center group-data-[state=collapsed]:ml-0.5"
-                                onClick={() => signOut({ redirectUrl: "/" })}
+                                onClick={() => {
+                                    signIn.reset()
+                                    signOut({ redirectUrl: "/" })
+                                }
+                                }
                             >
                                 <LogOut size={18} />
                             </SidebarMenuButton>

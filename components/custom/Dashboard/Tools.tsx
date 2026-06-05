@@ -1,13 +1,14 @@
-import { MarkerType, type Node, type Edge } from "@xyflow/react"
+import { MarkerType, type Node, type Edge, useReactFlow } from "@xyflow/react"
 import { ToolsDialogBox } from "@/components/common/ToolsDialogBox"
 import { ChartNetwork, CircleMinus, CirclePlus, Spline, SplinePointer } from "lucide-react"
-import { ToolsDialogBoxField, ToolsDialogBoxProps, ToolSidebarProps } from "@/lib/types"
+import { ToolsDialogBoxField, ToolsDialogBoxProps, WhiteboardProps } from "@/lib/types"
 import { isAlphanumerical, capitalizeWord, bellmanford, djikstra, saveGraph } from "@/lib/utils"
 import { useClerk } from "@clerk/nextjs"
 
 
-export const Tools = (props: ToolSidebarProps) => {
+export const Tools = (props: WhiteboardProps) => {
     const { nodes, setNodes, edges, setEdges, currentGraph } = props
+    const { screenToFlowPosition } = useReactFlow()
     const { user } = useClerk()
     const userEmail = user?.primaryEmailAddress?.emailAddress
 
@@ -47,14 +48,19 @@ export const Tools = (props: ToolSidebarProps) => {
             return "Node names must be unique!"
         }
 
+        const nodeX = window.innerWidth / 2 + (Math.random() - 0.5) * 100
+        const nodeY = window.innerHeight / 2 + (Math.random() - 0.5) * 100
+
+        const nodePosition = screenToFlowPosition({
+            x: nodeX,
+            y: nodeY
+        })
+
         const newNode: Node = {
             id: `${field.Node1.toLowerCase()}`,
             type: "custom",
             data: { label: capitalizeWord(field.Node1) },
-            position: {
-                x: Math.random() * 400 - 200,
-                y: Math.random() * 300 + 50
-            }
+            position: nodePosition
         }
 
         const save = [...nodes, newNode]

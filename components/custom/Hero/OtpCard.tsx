@@ -1,89 +1,109 @@
 "use client"
 
-import { useRef, useState } from "react"
+import {
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSeparator,
+    InputOTPSlot,
+} from "@/components/ui/input-otp"
+import { useSignIn, useSignUp } from "@clerk/nextjs"
+import { isClerkAPIResponseError } from "@clerk/nextjs/errors"
+import { useRouter } from "next/navigation"
+import { Dispatch, SetStateAction, useState } from "react"
 
-interface OtpCardProp {
-    email : string
-    error : string
-    loading : boolean
-    onOtpComplete : (code : string) => Promise<void>
-    onChangeEmail : () => void
+interface OtpCard {
+    isNewUser: boolean
+    setVerifying: Dispatch<SetStateAction<boolean>>
 }
 
-export const OtpCard = (props : OtpCardProp) => {
-    const [code, setCode] = useState("")
-    const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+export const OtpCard = (prop: OtpCard) => {
+    const { isNewUser, setVerifying } = prop
+    const { signIn } = useSignIn()
+    const { signUp } = useSignUp()
+    const router = useRouter()
+    const [error, setError] = useState("")
+    const [value, setValue] = useState("")
 
-    const { email , error , loading , onOtpComplete , onChangeEmail } = props
-    
-    const onOtpInput = async (index: number, value: string) => {
-        if (!/^\d*$/.test(value)) return;
+    const onChange = async (value: string) => {
+        setValue(value)
+        if (value.length < 6) return
 
-        const newCode = code.split("");
-        newCode[index] = value.slice(-1);
-        const updated = newCode.join("");
-        setCode(updated);
+        if (isNewUser) {
+            const { error: signUpOtpError } = await signUp.verifications.verifyEmailCode({ code: value })
 
-        if (value && index < 5) {
-            inputRefs.current[index + 1]?.focus();
-        }
+            if (!signUpOtpError) {
+                await signUp.finalize({
+                    navigate: ({ session, decorateUrl }) => {
+                        if (session?.currentTask) return
+                        const url = decorateUrl('/dashboard')
+                        url.startsWith('http') ? (window.location.href = url) : router.push(url)
+                    }
+                })
+                return
+            }
 
-        if (updated.length === 6 && updated.split("").every((c) => c)) {
-            onOtpComplete(updated);
+            const errMsg = isClerkAPIResponseError(signUpOtpError) && signUpOtpError.errors[0].code === "form_code_incorrect"
+                ? "Incorrect verification code!"
+                : "Something went wrong!"
+
+            return setError(errMsg)
+        } else {
+            const { error: signInOtpError } = await signIn.emailCode.verifyCode({ code: value })
+
+            if (!signInOtpError) {
+                await signIn.finalize({
+                    navigate: ({ session, decorateUrl }) => {
+                        if (session?.currentTask) return
+                        const url = decorateUrl('/dashboard')
+                        url.startsWith('http') ? (window.location.href = url) : router.push(url)
+                    }
+                })
+                return
+            }
+
+            const errMsg = isClerkAPIResponseError(signInOtpError) && signInOtpError.errors[0].code === "form_code_incorrect"
+                ? "Incorrect verification code!"
+                : "Something went wrong!"
+
+            return setError(errMsg)
         }
     }
-    
-      const onOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Backspace" && !code[index] && index > 0) {
-          inputRefs.current[index - 1]?.focus();
-        }
-      }
-    
-      const onOtpPaste = async (e: React.ClipboardEvent) => {
-        e.preventDefault();
-        const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-        if (pasted.length !== 6) return;
-    
-        setCode(pasted);
-        pasted.split("").forEach((char, i) => {
-          if (inputRefs.current[i]) inputRefs.current[i]!.value = char;
-        })
-        inputRefs.current[5]?.focus();
-        onOtpComplete(pasted);
-      }
-    
-      return (
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-white text-center">Check your email</h2>
-          <p className="text-sm text-gray-400 text-center">We sent a code to {email}</p>
-    
-          <div className="flex gap-2 justify-center" onPaste={onOtpPaste}>
-            {Array.from({ length: 6 }).map((_, i) => (
-              <input
-                key={i}
-                ref={(el) => { inputRefs.current[i] = el }}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={code[i] ?? ""}
-                onChange={(e) => onOtpInput(i, e.target.value)}
-                onKeyDown={(e) => onOtpKeyDown(i, e)}
-                disabled={loading}
-                className="w-11 h-14 text-center text-xl font-semibold bg-[#2a2a2a] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-white/30 disabled:opacity-50"
-              />
-            ))}
-          </div>
-    
-          {error && <p className="text-red-400 text-xs text-center">{error}</p>}
-          {loading && <p className="text-gray-400 text-xs text-center">Verifying...</p>}
-    
-          <button
-            type="button"
-            onClick={onChangeEmail}
-            className="w-full text-xs text-gray-500 hover:underline"
-          >
-            Use a different email
-          </button>
+
+    const onChangeEmail = () => {
+        setVerifying(false)
+        setError("")
+
+        isNewUser ? signUp.reset() : signIn.reset()
+    }
+
+    return (
+        <div className="flex flex-col items-center gap-y-5">
+            <InputOTP maxLength={6} value={value} onChange={onChange}>
+                <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                </InputOTPGroup>
+                <InputOTPSeparator />
+                <InputOTPGroup>
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                </InputOTPGroup>
+                <InputOTPSeparator />
+                <InputOTPGroup>
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                </InputOTPGroup>
+            </InputOTP>
+
+            {error && <p className="text-red-400 text-xs text-center">{error}</p>}
+
+            <button
+                type="button"
+                onClick={onChangeEmail}
+                className="w-full text-sm text-gray-500 hover:underline cursor-pointer"
+            >
+                Use a different email
+            </button>
         </div>
-      )
+    )
 }

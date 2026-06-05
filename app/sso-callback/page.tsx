@@ -8,6 +8,7 @@ export default function SSOCallback() {
         <p className="text-sm text-gray-400">Signing you in...</p>
       </div>
       <AuthenticateWithRedirectCallback />
+      <div id="clerk-captcha" data-cl-theme="dark" />
     </div>
   );
 }

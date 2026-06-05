@@ -1,8 +1,8 @@
 import { Tools } from './Tools'
-import { ToolSidebarProps } from '@/lib/types'
+import { WhiteboardProps } from '@/lib/types'
 import { ChatWindow } from './ChatWindow'
 
-export const ToolSideBar = (props: ToolSidebarProps) => {
+export const ToolSideBar = (props: WhiteboardProps) => {
     const { nodes, setNodes, edges, setEdges, currentGraph } = props
 
     return (

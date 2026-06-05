@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { GeminiEdges, GeminiNodes } from "./types"
-import { MarkerType, type Edge, type Node } from "@xyflow/react"
+import { MarkerType, XYPosition, type Edge, type Node } from "@xyflow/react"
 import { MinPriorityQueue } from '@datastructures-js/priority-queue'
 import { updateGraphDetails } from "@/actions/updateGraphDetails"
 
@@ -17,23 +17,32 @@ export const capitalizeWord = (text: string) =>  {
   return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
 }
 
-export const normalizeNodes = (nodes : Node[] , geminiNodes : GeminiNodes[]) => {
-  const nodesSet = new Set(nodes.map((node) => node.data.label))
-  geminiNodes = geminiNodes.filter((gNodes) => !nodesSet.has(gNodes.label))
+export const normalizeNodes = (
+    nodes: Node[], 
+    geminiNodes: GeminiNodes[], 
+    screenToFlowPosition: (clientPosition: XYPosition) => XYPosition) => {
 
-  return geminiNodes.map((gNodes) => {
-    const normalNode : Node = {
-      id : gNodes.id,
-      type : "custom",
-      data : { label : gNodes.label },
-      position: {
-          x: Math.random() * 400 - 200, 
-          y: Math.random() * 300 + 50
-      }
-    }
+    const nodesSet = new Set(nodes.map((node) => node.data.label))
+    geminiNodes = geminiNodes.filter((gNodes) => !nodesSet.has(gNodes.label))
 
-    return normalNode
-   })
+    return geminiNodes.map((gNodes) => {
+        const nodeX = window.innerWidth / 2 + (Math.random() - 0.5) * 100
+        const nodeY = window.innerHeight / 2 + (Math.random() - 0.5) * 100
+
+        const nodePosition = screenToFlowPosition({
+            x: nodeX,
+            y: nodeY
+        })
+
+        const normalNode : Node = {
+            id : gNodes.id,
+            type : "custom",
+            data : { label : gNodes.label },
+            position: nodePosition
+        }
+
+        return normalNode
+    })
 }
 
 export const normalizeEdges = (edges : Edge[] , geminiEdges : GeminiEdges[]) => {

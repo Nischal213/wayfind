@@ -1,17 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { GeminiResponse, ToolSidebarProps } from "@/lib/types";
+import { GeminiResponse, WhiteboardProps } from "@/lib/types";
 import { useRef, useState } from "react";
 import { normalizeEdges, normalizeNodes, saveGraph } from "@/lib/utils";
 import { useClerk } from "@clerk/nextjs";
+import { useReactFlow } from "@xyflow/react";
 
 interface Failure {
     error: string
     status: number
 }
 
-export const ChatWindow = (props: ToolSidebarProps) => {
+export const ChatWindow = (props: WhiteboardProps) => {
     const { nodes, setNodes, edges, setEdges, currentGraph } = props
+    const { screenToFlowPosition } = useReactFlow()
     const textAreaRef = useRef<HTMLTextAreaElement>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
@@ -55,7 +57,7 @@ export const ChatWindow = (props: ToolSidebarProps) => {
             if (data.valid) {
 
                 if (data.nodes.length && data.action !== "delete") {
-                    const normalNodes = normalizeNodes(nodes, data.nodes)
+                    const normalNodes = normalizeNodes(nodes, data.nodes, screenToFlowPosition)
                     const save = [...nodes, ...normalNodes]
                     const error = await saveGraph(
                         userEmail,

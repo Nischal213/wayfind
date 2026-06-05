@@ -32,9 +32,6 @@ export interface WhiteboardProps {
     setNodes : Dispatch<SetStateAction<Node[]>>
     edges : Edge[]
     setEdges : Dispatch<SetStateAction<Edge[]>>
-}
-
-export interface ToolSidebarProps extends WhiteboardProps {
     currentGraph: string
 }
 
