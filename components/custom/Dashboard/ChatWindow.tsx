@@ -91,15 +91,16 @@ export const ChatWindow = (props: WhiteboardProps) => {
 
                 if (data.edges.length && data.action !== "delete") {
                     const normalEdges = normalizeEdges(edges, data.edges)
+                    const save = [...edges, ...normalEdges]
                     const error = await saveGraph(
                         userEmail,
                         currentGraph,
                         undefined,
-                        normalEdges
+                        save
                     )
 
                     if (error) { setError(error); return }
-                    setEdges(normalEdges)
+                    setEdges(save)
                 }
 
                 if (data.deleteEdges.length && data.action !== "create") {
