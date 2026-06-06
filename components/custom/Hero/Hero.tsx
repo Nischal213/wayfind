@@ -13,7 +13,7 @@ export const Hero = () => {
                     <h1 className="text-6xl text-pretty [word-spacing:-0.2em]">Draw,describe, <span className="text-blue-500 whitespace-nowrap"> find the path. </span> </h1>
                     <p className="text-xl text-pretty text-neutral-300"> Wayfind lets you build graph networks visually or in plain English — then instantly find the shortest route between any two nodes. </p>
                 </div>
-                
+
                 <div className="flex flex-col gap-y-3 w-[80%]">
                     <div className="flex gap-x-4 items-center">
                         <div className="bg-blue-400/90 p-1 rounded-lg">
@@ -31,11 +31,11 @@ export const Hero = () => {
                         <div className="bg-blue-400/90 p-1 rounded-lg">
                             <GrNetwork size={24}></GrNetwork>
                         </div>
-                        <p className="text-lg"> <strong> A* pathfinding </strong>  — <span className="text-neutral-300"> get the shortest path instantly </span> </p>
+                        <p className="text-lg"> <strong> Graph pathfinding </strong>  — <span className="text-neutral-300"> get the shortest path instantly </span> </p>
                     </div>
                 </div>
             </div>
-            
+
             <div className="flex w-[50%] items-center justify-center h-dvh ">
                 <LoginCard></LoginCard>
             </div>
