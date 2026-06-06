@@ -124,7 +124,7 @@ export const ChatWindow = (props: WhiteboardProps) => {
                 setError("No nodes or connections found!")
                 return
             }
-        } catch (e) {
+        } catch {
             setLoading(false)
             setError("Error code 500: Internal server error!")
         }

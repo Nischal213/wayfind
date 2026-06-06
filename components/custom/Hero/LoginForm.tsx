@@ -56,7 +56,7 @@ export const LoginForm = (props: LoginFormProps) => {
             }
 
             return setError(signUpError.errors[0].message);
-        } catch (err) {
+        } catch {
             return setError("Something went wrong!")
         } finally {
             setLoading(false)

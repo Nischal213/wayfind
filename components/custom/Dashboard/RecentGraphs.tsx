@@ -42,7 +42,7 @@ export const RecentGraphs = (prop: RecentGraphsProps) => {
 
         getRecentGraphs()
 
-    }, [isLoaded, isSignedIn, userEmail])
+    }, [isLoaded, isSignedIn, userEmail, setGraphNames])
 
     const loadGraph = async (graphName: string) => {
         const { success, error, result } = await getGraphDetails(userEmail!, graphName)

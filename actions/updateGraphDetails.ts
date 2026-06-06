@@ -26,7 +26,7 @@ export const updateGraphDetails = async (
     }
 
     const supabase = createClient(url, key)
-    const { data , error: updateError } = await supabase
+    const { error: updateError } = await supabase
         .from("graphs")
         .update(updates)
         .eq("name", graphName)

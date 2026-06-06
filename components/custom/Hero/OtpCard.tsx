@@ -36,7 +36,12 @@ export const OtpCard = (prop: OtpCard) => {
                     navigate: ({ session, decorateUrl }) => {
                         if (session?.currentTask) return
                         const url = decorateUrl('/dashboard')
-                        url.startsWith('http') ? (window.location.href = url) : router.push(url)
+
+                        if (url.startsWith('http')) {
+                            window.location.href = url
+                        } else {
+                            router.push(url)
+                        }
                     }
                 })
                 return
@@ -55,7 +60,12 @@ export const OtpCard = (prop: OtpCard) => {
                     navigate: ({ session, decorateUrl }) => {
                         if (session?.currentTask) return
                         const url = decorateUrl('/dashboard')
-                        url.startsWith('http') ? (window.location.href = url) : router.push(url)
+
+                        if (url.startsWith('http')) {
+                            window.location.href = url
+                        } else {
+                            router.push(url)
+                        }
                     }
                 })
                 return
@@ -65,7 +75,8 @@ export const OtpCard = (prop: OtpCard) => {
                 ? "Incorrect verification code!"
                 : "Something went wrong!"
 
-            return setError(errMsg)
+            setError(errMsg)
+            return
         }
     }
 
@@ -73,7 +84,11 @@ export const OtpCard = (prop: OtpCard) => {
         setVerifying(false)
         setError("")
 
-        isNewUser ? signUp.reset() : signIn.reset()
+        if (isNewUser) {
+            signUp.reset()
+        } else {
+            signIn.reset()
+        }
     }
 
     return (
