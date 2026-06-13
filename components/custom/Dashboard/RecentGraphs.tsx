@@ -1,6 +1,7 @@
 import { getGraphDetails } from "@/actions/getGraphDetails"
 import { getUserRecentGraphs } from "@/actions/getUserRecentGraphs"
 import { SidebarMenu, SidebarMenuButton } from "@/components/ui/sidebar"
+import { Spinner } from "@/components/ui/spinner"
 import { useAuth, useClerk } from "@clerk/nextjs"
 import { Edge, Node } from "@xyflow/react"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
@@ -49,9 +50,6 @@ export const RecentGraphs = (prop: RecentGraphsProps) => {
 
         if (!success) { setError(error); return }
 
-        console.log("implement loading logic")
-        console.log(result)
-
         setCurrentGraph(graphName)
         setNodes(result.nodes)
         setEdges(result.edges)
@@ -63,11 +61,16 @@ export const RecentGraphs = (prop: RecentGraphsProps) => {
                 <p className="text-red-600 text-center"> {error} </p>
                 :
                 null}
-            {graphNames.map((name, key) =>
-                <SidebarMenuButton className="group-data-[state=collapsed]:hidden" key={key} onClick={() => loadGraph(name)}>
-                    {name}
-                </SidebarMenuButton>
-            )}
+            {graphNames.length ?
+                graphNames.map((name, key) =>
+                    <SidebarMenuButton className="group-data-[state=collapsed]:hidden" key={key} onClick={() => loadGraph(name)}>
+                        {name}
+                    </SidebarMenuButton>
+                ) :
+                <div className="flex justify-center mr-3 mt-10 items-center gap-2">
+                    <Spinner className="size-6 text-gray-700" />
+                    <p className="text-gray-700"> Loading...</p>
+                </div>}
         </SidebarMenu>
     )
 }

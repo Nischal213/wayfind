@@ -2,8 +2,11 @@ import { MarkerType, type Node, type Edge, useReactFlow } from "@xyflow/react"
 import { ToolsDialogBox } from "@/components/common/ToolsDialogBox"
 import { ChartNetwork, CircleMinus, CirclePlus, Spline, SplinePointer } from "lucide-react"
 import { ToolsDialogBoxField, ToolsDialogBoxProps, WhiteboardProps } from "@/lib/types"
-import { isAlphanumerical, capitalizeWord, bellmanford, djikstra, saveGraph } from "@/lib/utils"
+import { isAlphanumerical, capitalizeWord, saveGraph } from "@/lib/utils"
 import { useClerk } from "@clerk/nextjs"
+import { bellmanford } from "@/lib/algorithms/bellmanford"
+import { djikstra } from "@/lib/algorithms/djikstra"
+import { kruskal } from "@/lib/algorithms/kruskal"
 
 
 export const Tools = (props: WhiteboardProps) => {
@@ -249,6 +252,10 @@ export const Tools = (props: WhiteboardProps) => {
             return "Can't find a path when there's less than one node!"
         }
 
+        if (!edges.length) {
+            return "Can't find a path when there's no connections!"
+        }
+
         if (!doesNodeExist(node1)) {
             return "First node given doesn't exist!"
         }
@@ -305,6 +312,46 @@ export const Tools = (props: WhiteboardProps) => {
         action: findPath
     }
 
+    const minGraph = async (field: ToolsDialogBoxField): Promise<string | null> => {
+        if (nodes.length <= 1) {
+            return "Can't find a minimise the graph when there's less than one node!"
+        }
+
+        if (!edges.length) {
+            return "Can't find a minimise the graph when there's no connections!"
+        }
+
+        const edgesSet = new Set(edges.map((edge) => `${edge.source}-${edge.target}`))
+        const isGraphSymmetric = edges.every((edge) => edgesSet.has(`${edge.target}-${edge.source}`))
+
+        if (isGraphSymmetric) {
+            const mstEdges = kruskal(nodes, edges)
+            const error = await saveGraph(
+                userEmail,
+                currentGraph,
+                undefined,
+                mstEdges
+            )
+
+            if (error) return error
+
+            setEdges(mstEdges)
+        } else {
+            // Try implementing Chu-Liu/Edmonds in the future
+        }
+
+        return null
+    }
+
+    const minGraphProp: ToolsDialogBoxProps = {
+        title: "Warning this action is permanent!",
+        description: "Uses kruskal's algorithm to generate a MST if your graph is symmetric!",
+        btnName: "Minimize Graph Cost",
+        icon: <ChartNetwork size={18} />,
+        inputsToCreate: [],
+        action: minGraph
+    }
+
     return (
         <>
             <ToolsDialogBox {...addNodeProp}></ToolsDialogBox>
@@ -312,6 +359,7 @@ export const Tools = (props: WhiteboardProps) => {
             <ToolsDialogBox {...addEdgeProp}></ToolsDialogBox>
             <ToolsDialogBox {...removeEdgeProp}></ToolsDialogBox>
             <ToolsDialogBox {...findPathProp}></ToolsDialogBox>
+            <ToolsDialogBox {...minGraphProp}></ToolsDialogBox>
         </>
     )
 

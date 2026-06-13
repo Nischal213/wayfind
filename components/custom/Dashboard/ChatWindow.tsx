@@ -2,9 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { GeminiResponse, WhiteboardProps } from "@/lib/types";
 import { useRef, useState } from "react";
-import { normalizeEdges, normalizeNodes, saveGraph } from "@/lib/utils";
+import { saveGraph } from "@/lib/utils";
 import { useClerk } from "@clerk/nextjs";
 import { useReactFlow } from "@xyflow/react";
+import { normalizeNodes, normalizeEdges } from "@/lib/algorithms/cleanGeminiOutput";
 
 interface Failure {
     error: string
