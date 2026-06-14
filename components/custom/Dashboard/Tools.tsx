@@ -1,6 +1,6 @@
 import { MarkerType, type Node, type Edge, useReactFlow } from "@xyflow/react"
 import { ToolsDialogBox } from "@/components/common/ToolsDialogBox"
-import { ChartNetwork, CircleMinus, CirclePlus, Spline, SplinePointer } from "lucide-react"
+import { ChartNetwork, CircleMinus, CirclePlus, Network, Spline, SplinePointer } from "lucide-react"
 import { ToolsDialogBoxField, ToolsDialogBoxProps, WhiteboardProps } from "@/lib/types"
 import { isAlphanumerical, capitalizeWord, saveGraph } from "@/lib/utils"
 import { useClerk } from "@clerk/nextjs"
@@ -337,16 +337,29 @@ export const Tools = (props: WhiteboardProps) => {
 
         if (isGraphSymmetric) {
             const mstEdges = kruskal(nodes, edges)
+            const save = mstEdges.reduce<Edge[]>((acc, edge) => {
+                acc.push(edge)
+                acc.push({
+                    ...edge,
+                    id: `${edge.target}-${edge.source}`,
+                    source: edge.target,
+                    target: edge.source,
+                    sourceHandle: "bottom",
+                    targetHandle: "bottom"
+                })
+                return acc
+            }, [])
+
             const error = await saveGraph(
                 userEmail,
                 currentGraph,
                 undefined,
-                mstEdges
+                save
             )
 
             if (error) return error
 
-            setEdges(mstEdges)
+            setEdges(save)
         } else {
             // Try implementing Chu-Liu/Edmonds in the future
         }
@@ -358,7 +371,7 @@ export const Tools = (props: WhiteboardProps) => {
         title: "Warning this action is permanent!",
         description: "Uses kruskal's algorithm to generate a MST if your graph is symmetric!",
         btnName: "Minimize Graph Cost",
-        icon: <ChartNetwork size={18} />,
+        icon: <Network size={18} />,
         inputsToCreate: [],
         action: minGraph
     }
