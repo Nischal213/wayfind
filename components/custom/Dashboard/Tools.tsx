@@ -321,8 +321,19 @@ export const Tools = (props: WhiteboardProps) => {
             return "Can't find a minimise the graph when there's no connections!"
         }
 
-        const edgesSet = new Set(edges.map((edge) => `${edge.source}-${edge.target}`))
-        const isGraphSymmetric = edges.every((edge) => edgesSet.has(`${edge.target}-${edge.source}`))
+        const edgeWeightTable: Record<string, number> = {}
+        edges.forEach((edge) => {
+            edgeWeightTable[`${edge.source}-${edge.target}`] = Number(edge.label)
+        })
+
+        // Since kruskal's algorithm only works on undirected graphs,
+        // We check if every A -> B has a reverse B -> A with an equal
+        // weight. Which is basically an undirected graph.
+        const isGraphSymmetric = edges.every((edge) => {
+            const reverseKey = `${edge.target}-${edge.source}`
+            return reverseKey in edgeWeightTable &&
+                edgeWeightTable[reverseKey] === Number(edge.label)
+        })
 
         if (isGraphSymmetric) {
             const mstEdges = kruskal(nodes, edges)
