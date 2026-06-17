@@ -7,6 +7,7 @@ import { useClerk } from "@clerk/nextjs"
 import { bellmanford } from "@/lib/algorithms/bellmanford"
 import { djikstra } from "@/lib/algorithms/djikstra"
 import { kruskal } from "@/lib/algorithms/kruskal"
+import { chuLiuEdmond } from "@/lib/algorithms/chuLiuEdmond"
 
 
 export const Tools = (props: WhiteboardProps) => {
@@ -361,7 +362,18 @@ export const Tools = (props: WhiteboardProps) => {
 
             setEdges(save)
         } else {
-            // Try implementing Chu-Liu/Edmonds in the future
+            const finalEdges = chuLiuEdmond(nodes, edges)
+
+            const error = await saveGraph(
+                userEmail,
+                currentGraph,
+                undefined,
+                finalEdges
+            )
+
+            if (error) return error
+
+            setEdges(finalEdges)
         }
 
         return null

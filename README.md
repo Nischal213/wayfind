@@ -117,9 +117,9 @@ GEMINI_API_KEY=your_gemini_api_key
 |---|---|
 | Core graph engine & pathfinding | ✅ Complete |
 | Zero-latency Supabase persistence | ✅ Complete |
+| Minimum Spanning Tree (MST) analysis | ✅ Complete |
 | Stripe integration for tiered billing | 🔜 Planned |
 | Real-time multi-user collaboration via WebSockets | 🔜 Planned |
-| Minimum Spanning Tree (MST) analysis | 🔜 Planned |
 
 ---
 
