@@ -21,10 +21,10 @@ interface SuperNodeInfo {
     contractedCycleEdges: Edge[]
 
     // Real target inside the cycle
-    enteredFrom: Record<string, string> 
+    enteredFrom: Record<string, string>
 
     // Real source inside the cycle
-    leftFrom: Record<string, string>    
+    leftFrom: Record<string, string>
 }
 
 // Keeping track of the super nodes outside of the recursion phase
@@ -47,7 +47,7 @@ const makeCheapestTable = (edges: Edge[]): Record<string, Edge> => {
 
     while (edgeQueue.size()) {
         const edge = edgeQueue.dequeue()!
-        
+
         cheapestTable[edge.target] ??= edge
     }
 
@@ -80,7 +80,7 @@ const detectCycle = (cheapestIncoming: Record<string, Edge>): Edge[] => {
             visitedOnCurrentWalk.add(currentNode)
             const parentEdge = cheapestIncoming[currentNode]
             currentPath.push(parentEdge)
-            currentNode = parentEdge.source 
+            currentNode = parentEdge.source
         }
 
         currentPath.forEach((edge) => fullyResolved.add(edge.target))
@@ -111,8 +111,9 @@ const runChuLiuEdmonds = (nodes: NodeLike[], edges: Edge[]): Edge[] => {
         cycleTable[edge.target] = Number(edge.label)
     })
 
-    const enteredFrom: Record<string, string> = {} 
-    const leftFrom: Record<string, string> = {} 
+    const enteredFrom: Record<string, string> = {}
+    const enteredFromLabel: Record<string, string> = {}
+    const leftFrom: Record<string, string> = {}
 
     // Re-building the edges to prepare for recursion
     const edgesAfterContraction = edges
@@ -129,6 +130,7 @@ const runChuLiuEdmonds = (nodes: NodeLike[], edges: Edge[]): Edge[] => {
             // Step 3b: Edges entering super node have their weights readjusted
             if (cycleNodeIds.has(edge.target)) {
                 enteredFrom[edge.id] = edge.target
+                enteredFromLabel[edge.id] = edge.label as string
                 return {
                     ...edge,
                     target: superNodeId,
@@ -154,7 +156,7 @@ const runChuLiuEdmonds = (nodes: NodeLike[], edges: Edge[]): Edge[] => {
     // Step 3c: recursion on smaller graph
     const resultFromRecursion = runChuLiuEdmonds(nodesAfterContraction, edgesAfterContraction)
 
-    
+
     // Step 3d: extraction phase
     const info = superNodeTable[superNodeId]
     const expandedResult: Edge[] = []
@@ -166,7 +168,7 @@ const runChuLiuEdmonds = (nodes: NodeLike[], edges: Edge[]): Edge[] => {
             // This outside edge was redirected to point at the super-node.
             // Restore it to point at the real cycle node it originally targeted.
             cycleEntryNode = info.enteredFrom[edge.id]
-            expandedResult.push({ ...edge, target: cycleEntryNode })
+            expandedResult.push({ ...edge, target: cycleEntryNode, label: enteredFromLabel[edge.id] })
         } else if (edge.source === superNodeId) {
             // This edge left from the super-node. Restore its real source.
             expandedResult.push({ ...edge, source: info.leftFrom[edge.id] })

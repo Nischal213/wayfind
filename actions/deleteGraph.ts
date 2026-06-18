@@ -1,25 +1,15 @@
 "use server"
 
-import { createClient } from "@supabase/supabase-js"
-import { doesGraphAlreadyExist } from "./doesGraphAlreadyExist"
-import { doesUserExist } from "./doesUserExist"
+import { createClient } from "@/lib/supabase/server"
 import { DbActionResponse } from "@/lib/types"
+import { auth } from "@clerk/nextjs/server"
 
 export const deleteGraph = async (email: string, graphName: string) : Promise<DbActionResponse> => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
+    const { isAuthenticated } = await auth()
 
-    const { success, error, result: userExists } = await doesUserExist(email)
+    if (!isAuthenticated) return { success: false, error: "Unauthorized!" }
 
-    if (!success) return { success: false , error: error }
-    if (success && !userExists) return { success: false, error: "Please wait for clerk to verify you!" }
-    
-    const { success: gSuccess, error: gError, result: graphExists } = await doesGraphAlreadyExist(email , graphName)
-    
-    if (!gSuccess) return { success: false, error: gError }
-    if (gSuccess && !graphExists) return { success: false, error: "This graph doesn't exist!"}
-
-    const supabase = createClient(url , key)
+    const supabase = await createClient()
     const { error: deleteError } = await supabase
         .from("graphs")
         .delete()

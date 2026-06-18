@@ -7,22 +7,21 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
 import { ReactFlowProvider, type Edge, type Node } from "@xyflow/react";
 import { createUser } from "@/actions/createUser";
-import { useAuth, useClerk } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { ChartNoAxesColumnIncreasing } from "lucide-react";
 
 export default function DashBoardPage() {
     const [nodes, setNodes] = useState<Node[]>([])
     const [edges, setEdges] = useState<Edge[]>([])
     const [currentGraph, setCurrentGraph] = useState<string>("")
-    const { isLoaded, isSignedIn } = useAuth()
-    const { user } = useClerk()
-    const userEmail = user?.primaryEmailAddress?.emailAddress
+    const { isLoaded, isSignedIn, user } = useUser()
+    const email = user?.primaryEmailAddress?.emailAddress
 
     useEffect(() => {
-        if (!isLoaded || !isSignedIn || !userEmail) return
+        if (!isLoaded || !isSignedIn || !email) return
 
         const makeNewUser = async () => {
-            const { success, error } = await createUser(userEmail)
+            const { success, error } = await createUser(email)
 
             if (!success) {
                 throw new Error(`${error}`)
@@ -30,7 +29,7 @@ export default function DashBoardPage() {
         }
 
         makeNewUser()
-    }, [isLoaded, isSignedIn, userEmail])
+    }, [isLoaded, isSignedIn, email])
 
     return (
         <ReactFlowProvider>

@@ -2,19 +2,19 @@ import { MarkerType, type Node, type Edge, useReactFlow } from "@xyflow/react"
 import { ToolsDialogBox } from "@/components/common/ToolsDialogBox"
 import { ChartNetwork, CircleMinus, CirclePlus, Network, Spline, SplinePointer } from "lucide-react"
 import { ToolsDialogBoxField, ToolsDialogBoxProps, WhiteboardProps } from "@/lib/types"
-import { isAlphanumerical, capitalizeWord, saveGraph } from "@/lib/utils"
-import { useClerk } from "@clerk/nextjs"
+import { isNameValid, capitalizeWord, saveGraph, isReserved } from "@/lib/utils"
 import { bellmanford } from "@/lib/algorithms/bellmanford"
 import { djikstra } from "@/lib/algorithms/djikstra"
 import { kruskal } from "@/lib/algorithms/kruskal"
 import { chuLiuEdmond } from "@/lib/algorithms/chuLiuEdmond"
+import { useUser } from "@clerk/nextjs"
 
 
 export const Tools = (props: WhiteboardProps) => {
     const { nodes, setNodes, edges, setEdges, currentGraph } = props
     const { screenToFlowPosition } = useReactFlow()
-    const { user } = useClerk()
-    const userEmail = user?.primaryEmailAddress?.emailAddress
+    const { user } = useUser()
+    const email = user?.primaryEmailAddress?.emailAddress!
 
     const doesNodeExist = (fieldNode: string) => {
         if (nodes.length == 0) {
@@ -44,8 +44,12 @@ export const Tools = (props: WhiteboardProps) => {
             return "Node names can't be empty!"
         }
 
-        if (!isAlphanumerical(field.Node1)) {
-            return "Node names must consist of letters or numbers only!"
+        if (isReserved(field.Node1)) {
+            return "This node name is reserved!"
+        }
+
+        if (!isNameValid(field.Node1)) {
+            return "Please use only letters, numbers, and single spaces!"
         }
 
         if (doesNodeExist(field.Node1)) {
@@ -68,7 +72,7 @@ export const Tools = (props: WhiteboardProps) => {
         }
 
         const save = [...nodes, newNode]
-        const error = await saveGraph(userEmail, currentGraph, save, undefined)
+        const error = await saveGraph(email, currentGraph, save, undefined)
 
         if (error) return error
 
@@ -89,10 +93,10 @@ export const Tools = (props: WhiteboardProps) => {
         const node1 = field.Node1.toLowerCase()
 
         if (doesNodeExist(field.Node1)) {
-            const save1 = nodes.filter((node) => node.data.label !== capitalizeWord(node1))
+            const save1 = nodes.filter((node) => node.id !== node1)
             const save2 = edges.filter((edge) => edge.target !== node1 && edge.source !== node1)
             const error = await saveGraph(
-                userEmail,
+                email,
                 currentGraph,
                 save1,
                 save2
@@ -149,11 +153,12 @@ export const Tools = (props: WhiteboardProps) => {
         const edgeExists = edges.find((edge) => edge.id === `${node1}-${node2}`)
 
         if (edgeExists) {
+            console.log("Replaced blud")
             const updatedEdge: Edge = { ...edgeExists, label: cost }
             const save = edges.map((edge) => edge.id === updatedEdge.id ? updatedEdge : edge)
 
             const error = await saveGraph(
-                userEmail,
+                email,
                 currentGraph,
                 undefined,
                 save
@@ -164,8 +169,12 @@ export const Tools = (props: WhiteboardProps) => {
             setEdges(save)
             return null
         }
+        console.log(edges)
 
-        const reverseExists = edges.some((edge) => edge.id === `${node2}-${node1}`)
+        const reverseEdge = edges.find((edge) => edge.id === `${node2}-${node1}`)
+
+        console.log(reverseEdge)
+        console.log("Found a reverse blud")
 
         const newEdge: Edge = {
             id: `${node1}-${node2}`,
@@ -173,8 +182,8 @@ export const Tools = (props: WhiteboardProps) => {
             target: `${getNodeId(node2)}`,
             label: `${field.Cost}`,
             type: "smoothstep",
-            sourceHandle: reverseExists ? "bottom" : "top",
-            targetHandle: reverseExists ? "bottom" : "top",
+            sourceHandle: reverseEdge?.sourceHandle === "top" ? "bottom" : "top",
+            targetHandle: reverseEdge?.targetHandle === "top" ? "bottom" : "top",
             zIndex: 0,
             style: {
                 stroke: `#b1b1b7`
@@ -187,7 +196,7 @@ export const Tools = (props: WhiteboardProps) => {
             },
         }
 
-        const error = await saveGraph(userEmail, currentGraph, undefined, [...edges, newEdge])
+        const error = await saveGraph(email, currentGraph, undefined, [...edges, newEdge])
 
         if (error) return error
 
@@ -221,7 +230,7 @@ export const Tools = (props: WhiteboardProps) => {
         if (targetEdge) {
             const save = edges.filter((edge) => edge.id !== `${node1}-${node2}`)
             const error = await saveGraph(
-                userEmail,
+                email,
                 currentGraph,
                 undefined,
                 save
@@ -352,7 +361,7 @@ export const Tools = (props: WhiteboardProps) => {
             }, [])
 
             const error = await saveGraph(
-                userEmail,
+                email,
                 currentGraph,
                 undefined,
                 save
@@ -365,7 +374,7 @@ export const Tools = (props: WhiteboardProps) => {
             const finalEdges = chuLiuEdmond(nodes, edges)
 
             const error = await saveGraph(
-                userEmail,
+                email,
                 currentGraph,
                 undefined,
                 finalEdges
@@ -381,7 +390,7 @@ export const Tools = (props: WhiteboardProps) => {
 
     const minGraphProp: ToolsDialogBoxProps = {
         title: "Warning this action is permanent!",
-        description: "Uses kruskal's algorithm to generate a MST if your graph is symmetric!",
+        description: "Uses Kruskal's algorithm to generate a MST if your graph is symmetric, otherwise uses Chu-Liu-Edmonds!",
         btnName: "Minimize Graph Cost",
         icon: <Network size={18} />,
         inputsToCreate: [],

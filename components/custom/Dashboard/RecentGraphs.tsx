@@ -2,7 +2,7 @@ import { getGraphDetails } from "@/actions/getGraphDetails"
 import { getUserRecentGraphs } from "@/actions/getUserRecentGraphs"
 import { SidebarMenu, SidebarMenuButton } from "@/components/ui/sidebar"
 import { Spinner } from "@/components/ui/spinner"
-import { useAuth, useClerk } from "@clerk/nextjs"
+import { useUser } from "@clerk/nextjs"
 import { Edge, Node } from "@xyflow/react"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 
@@ -18,21 +18,14 @@ export const RecentGraphs = (prop: RecentGraphsProps) => {
     const { graphNames, setGraphNames, setCurrentGraph, setNodes, setEdges } = prop
     const [error, setError] = useState("")
     const [showSpinner, setSpinner] = useState(true)
-    const { isLoaded, isSignedIn } = useAuth()
-    const { user } = useClerk()
-    const userEmail = user?.primaryEmailAddress?.emailAddress
+    const { isLoaded, isSignedIn, user } = useUser()
+    const email = user?.primaryEmailAddress?.emailAddress!
 
     useEffect(() => {
-        if (!isLoaded || !isSignedIn || !userEmail) return
+        if (!isLoaded || !isSignedIn) return
 
         const getRecentGraphs = async () => {
-            if (!userEmail) {
-                setError("Clerk hasn't loaded in yet please wait!")
-                setSpinner(false)
-                return
-            }
-
-            const { success, error, result } = await getUserRecentGraphs(userEmail)
+            const { success, error, result } = await getUserRecentGraphs(email)
             setSpinner(false)
 
             if (!success) {
@@ -46,13 +39,14 @@ export const RecentGraphs = (prop: RecentGraphsProps) => {
 
         getRecentGraphs()
 
-    }, [isLoaded, isSignedIn, userEmail, setGraphNames])
+    }, [isLoaded, isSignedIn, setGraphNames])
 
     const loadGraph = async (graphName: string) => {
-        const { success, error, result } = await getGraphDetails(userEmail!, graphName)
+        const { success, error, result } = await getGraphDetails(email, graphName)
 
         if (!success) { setError(error); return }
 
+        setError("")
         setCurrentGraph(graphName)
         setNodes(result.nodes)
         setEdges(result.edges)
@@ -60,16 +54,16 @@ export const RecentGraphs = (prop: RecentGraphsProps) => {
 
     return (
         <SidebarMenu>
-            {error ?
-                <p className="text-red-600 text-center"> {error} </p>
-                :
-                null}
-
             {graphNames.map((name, key) =>
                 <SidebarMenuButton className="group-data-[state=collapsed]:hidden" key={key} onClick={() => loadGraph(name)}>
                     {name}
                 </SidebarMenuButton>
             )}
+
+            {error ?
+                <p className="text-red-600 text-center text-xs font-medium mt-2"> {error} </p>
+                :
+                null}
 
             {showSpinner ?
                 <div className="flex justify-center mr-3 mt-10 items-center gap-2">

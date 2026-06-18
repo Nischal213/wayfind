@@ -3,9 +3,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { GeminiResponse, WhiteboardProps } from "@/lib/types";
 import { useRef, useState } from "react";
 import { saveGraph } from "@/lib/utils";
-import { useClerk } from "@clerk/nextjs";
 import { useReactFlow } from "@xyflow/react";
 import { normalizeNodes, normalizeEdges } from "@/lib/algorithms/cleanGeminiOutput";
+import { useUser } from "@clerk/nextjs";
 
 interface Failure {
     error: string
@@ -18,8 +18,8 @@ export const ChatWindow = (props: WhiteboardProps) => {
     const textAreaRef = useRef<HTMLTextAreaElement>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
-    const { user } = useClerk()
-    const userEmail = user?.primaryEmailAddress?.emailAddress
+    const { user } = useUser()
+    const email = user?.primaryEmailAddress?.emailAddress!
 
     const sendMessage = async () => {
         setError("")
@@ -61,7 +61,7 @@ export const ChatWindow = (props: WhiteboardProps) => {
                     const normalNodes = normalizeNodes(nodes, data.nodes, screenToFlowPosition)
                     const save = [...nodes, ...normalNodes]
                     const error = await saveGraph(
-                        userEmail,
+                        email,
                         currentGraph,
                         save,
                         undefined
@@ -79,7 +79,7 @@ export const ChatWindow = (props: WhiteboardProps) => {
                         !deleteNodesSet.has(edge.target)
                     )
                     const error = await saveGraph(
-                        userEmail,
+                        email,
                         currentGraph,
                         save1,
                         save2
@@ -94,7 +94,7 @@ export const ChatWindow = (props: WhiteboardProps) => {
                     const normalEdges = normalizeEdges(edges, data.edges)
                     const save = [...edges, ...normalEdges]
                     const error = await saveGraph(
-                        userEmail,
+                        email,
                         currentGraph,
                         undefined,
                         save
@@ -108,7 +108,7 @@ export const ChatWindow = (props: WhiteboardProps) => {
                     const deleteEdgesSet = new Set(data.deleteEdges.map((edge) => `${edge.source}-${edge.target}`))
                     const save = edges.filter((edge) => !deleteEdgesSet.has(edge.id))
                     const error = await saveGraph(
-                        userEmail,
+                        email,
                         currentGraph,
                         undefined,
                         save

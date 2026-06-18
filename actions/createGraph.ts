@@ -1,26 +1,15 @@
 "use server"
 
-import { createClient } from "@supabase/supabase-js"
-import { doesUserExist } from "./doesUserExist"
+import { createClient } from "@/lib/supabase/server"
 import { DbActionResponse } from "@/lib/types"
-import { doesGraphAlreadyExist } from "./doesGraphAlreadyExist"
+import { auth } from "@clerk/nextjs/server"
 
 export const createGraph = async (email: string, graphName: string) : Promise<DbActionResponse> => {
+    const { isAuthenticated } = await auth()
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
+    if (!isAuthenticated) return { success: false, error: "Unauthorized!" }
 
-    const { success , error , result : userExists } = await doesUserExist(email)
-
-    if (!success) return { success: false, error }
-    if (success && !userExists) return { success: false, error: "Please wait for clerk to verify you!" }
-
-    const { success: gSuccess , error: gError , result: graphExists } = await doesGraphAlreadyExist(email , graphName)
-
-    if (!gSuccess) return { success: false, error: gError }
-    if (gSuccess && graphExists) return { success: false, error: "This graph already exists!"}
-
-    const supabase = createClient(url , key)
+    const supabase = await createClient()
     const { data: userData , error: idError } = await supabase.from("users").select().eq("email", email).single()
 
     if (idError) return { success: false , error: idError.message }

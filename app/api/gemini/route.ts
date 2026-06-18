@@ -11,16 +11,16 @@ const isGeminiError = (e: unknown): e is GeminiError => {
 }
 
 
-export async function POST(request : NextRequest) {
+export async function POST(request: NextRequest) {
     const { prompt } = await request.json()
 
-    const ai = new GoogleGenAI({ apiKey : process.env.GEMINI_API_KEY })
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 
     try {
         const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        config : {
-            systemInstruction: `
+            model: "gemini-2.5-flash-lite",
+            config: {
+                systemInstruction: `
             You are a graph extraction engine. Convert ANY user message into a JSON graph operation.
 
             ## Output Format
@@ -102,31 +102,31 @@ export async function POST(request : NextRequest) {
             User: "what's the shortest path from london to paris?"
             {"valid":false,"action":"create","nodes":[],"edges":[],"deleteNodes":[],"deleteEdges":[]}
             `
-        },
-        contents : prompt
+            },
+            contents: prompt
         })
 
-        console.log(response.text)
+        console.log("Gemini says: ", response.text)
 
         if (response.text) {
-            const cleanedResponse : GeminiResponse = JSON.parse(response.text)
+            const cleanedResponse: GeminiResponse = JSON.parse(response.text)
 
             return NextResponse.json(cleanedResponse)
         } else {
-            const emptyResponse : GeminiResponse = {
-                valid : false,
+            const emptyResponse: GeminiResponse = {
+                valid: false,
                 // Random action. Empty responses are immediately filtered out
                 // by the valid flag.
-                action : "create",
-                nodes : [],
-                edges : [],
-                deleteNodes : [],
-                deleteEdges : []
+                action: "create",
+                nodes: [],
+                edges: [],
+                deleteNodes: [],
+                deleteEdges: []
             }
 
             return NextResponse.json(emptyResponse)
         }
-        
+
     } catch (e) {
 
         console.log(e)
@@ -139,8 +139,8 @@ export async function POST(request : NextRequest) {
         }
 
         return NextResponse.json(
-            { error : "Something went wrong with Gemini's servers!" } , 
-            { status : 502 }
+            { error: "Something went wrong with Gemini's servers!" },
+            { status: 502 }
         )
     }
 }
