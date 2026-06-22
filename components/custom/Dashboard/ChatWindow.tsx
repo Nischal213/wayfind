@@ -19,7 +19,7 @@ export const ChatWindow = (props: WhiteboardProps) => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const { user } = useUser()
-    const email = user?.primaryEmailAddress?.emailAddress!
+    const email = user!.primaryEmailAddress!.emailAddress!
 
     const sendMessage = async () => {
         setError("")

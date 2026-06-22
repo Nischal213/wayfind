@@ -17,9 +17,10 @@ interface CustomSidebarUtilsProps {
 export const CustomSidebarUtils = (props: CustomSidebarUtilsProps) => {
     const { graphNames, setGraphNames, currentGraph, setCurrentGraph } = props
     const { user } = useUser()
-    const email = user?.primaryEmailAddress?.emailAddress!
+    const email = user?.primaryEmailAddress?.emailAddress
 
     const makeNewGraph = async (userInput: string): Promise<string | null> => {
+        if (!email) return "Please wait for clerk to finish loading!"
         if (!userInput.length) return "Graph names can't be empty!"
         if (graphNames.find((name) => name === userInput)) return "This graph already exists!"
 
@@ -43,6 +44,7 @@ export const CustomSidebarUtils = (props: CustomSidebarUtilsProps) => {
     }
 
     const removeGraph = async (userInput: string): Promise<string | null> => {
+        if (!email) return "Please wait for clerk to finish loading!"
         if (!userInput.length) return "Graph names can't be empty!"
         if (!graphNames.find((name) => name === userInput)) return "This graph doesn't exist!"
 

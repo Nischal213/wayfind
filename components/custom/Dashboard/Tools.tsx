@@ -14,7 +14,7 @@ export const Tools = (props: WhiteboardProps) => {
     const { nodes, setNodes, edges, setEdges, currentGraph } = props
     const { screenToFlowPosition } = useReactFlow()
     const { user } = useUser()
-    const email = user?.primaryEmailAddress?.emailAddress!
+    const email = user!.primaryEmailAddress!.emailAddress!
 
     const doesNodeExist = (fieldNode: string) => {
         if (nodes.length == 0) {
@@ -322,7 +322,7 @@ export const Tools = (props: WhiteboardProps) => {
         action: findPath
     }
 
-    const minGraph = async (field: ToolsDialogBoxField): Promise<string | null> => {
+    const minGraph = async (): Promise<string | null> => {
         if (nodes.length <= 1) {
             return "Can't find a minimise the graph when there's less than one node!"
         }

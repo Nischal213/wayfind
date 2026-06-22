@@ -10,13 +10,13 @@ interface GraphDetailsResponse {
     edges: Edge[]
 }
 
-export const getGraphDetails = async (email: string, graphName: string) : Promise<DbQueryResponse<GraphDetailsResponse>> => {
+export const getGraphDetails = async (email: string, graphName: string): Promise<DbQueryResponse<GraphDetailsResponse>> => {
     const { isAuthenticated } = await auth()
 
-    if (!isAuthenticated) return { success: false, error: "Unauthorized!", result: {nodes:[], edges:[]} }
+    if (!isAuthenticated) return { success: false, error: "Unauthorized!", result: { nodes: [], edges: [] } }
 
     const supabase = await createClient()
-    const { data , error: gError } = await supabase
+    const { data, error: gError } = await supabase
         .from("graphs")
         .select(`
             nodes,
@@ -28,7 +28,7 @@ export const getGraphDetails = async (email: string, graphName: string) : Promis
         .single()
 
     if (gError) {
-        return { success: false, error: gError.message, result: {nodes:[], edges:[]} }
+        return { success: false, error: gError.message, result: { nodes: [], edges: [] } }
     } else {
         return { success: true, error: "", result: data }
     }
