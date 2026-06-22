@@ -1,21 +1,20 @@
 "use server"
 
-import { createClient } from "@supabase/supabase-js"
-import { doesUserExist } from "./doesUserExist"
+import { createClient } from "@/lib/supabase/server"
 import { Edge, Node } from "@xyflow/react"
 import { DbActionResponse } from "@/lib/types"
+import { auth } from "@clerk/nextjs/server"
 
 export const updateGraphDetails = async (
-    email: string | undefined, 
+    email: string,
     graphName: string, 
     nodes?: Node[], 
     edges?: Edge[]
 ): Promise<DbActionResponse> => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
+    
+    const { isAuthenticated } = await auth()
 
-    const { success, error } = await doesUserExist(email)
-    if (!success) return { success: false, error: error }
+    if (!isAuthenticated) return { success: false, error: "Unauthorized!" }
 
     const updates: { nodes?: Node[], edges?: Edge[] } = {}
     if (nodes !== undefined) updates.nodes = nodes
@@ -25,7 +24,7 @@ export const updateGraphDetails = async (
         return { success: false, error: "Provide either nodes or edges for update" }
     }
 
-    const supabase = createClient(url, key)
+    const supabase = await createClient()
     const { error: updateError } = await supabase
         .from("graphs")
         .update(updates)

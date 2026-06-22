@@ -1,16 +1,20 @@
 import { MarkerType, type Node, type Edge, useReactFlow } from "@xyflow/react"
 import { ToolsDialogBox } from "@/components/common/ToolsDialogBox"
-import { ChartNetwork, CircleMinus, CirclePlus, Spline, SplinePointer } from "lucide-react"
+import { ChartNetwork, CircleMinus, CirclePlus, Network, Spline, SplinePointer } from "lucide-react"
 import { ToolsDialogBoxField, ToolsDialogBoxProps, WhiteboardProps } from "@/lib/types"
-import { isAlphanumerical, capitalizeWord, bellmanford, djikstra, saveGraph } from "@/lib/utils"
-import { useClerk } from "@clerk/nextjs"
+import { isNameValid, capitalizeWord, saveGraph, isReserved } from "@/lib/utils"
+import { bellmanford } from "@/lib/algorithms/bellmanford"
+import { djikstra } from "@/lib/algorithms/djikstra"
+import { kruskal } from "@/lib/algorithms/kruskal"
+import { chuLiuEdmond } from "@/lib/algorithms/chuLiuEdmond"
+import { useUser } from "@clerk/nextjs"
 
 
 export const Tools = (props: WhiteboardProps) => {
     const { nodes, setNodes, edges, setEdges, currentGraph } = props
     const { screenToFlowPosition } = useReactFlow()
-    const { user } = useClerk()
-    const userEmail = user?.primaryEmailAddress?.emailAddress
+    const { user } = useUser()
+    const email = user?.primaryEmailAddress?.emailAddress!
 
     const doesNodeExist = (fieldNode: string) => {
         if (nodes.length == 0) {
@@ -40,8 +44,12 @@ export const Tools = (props: WhiteboardProps) => {
             return "Node names can't be empty!"
         }
 
-        if (!isAlphanumerical(field.Node1)) {
-            return "Node names must consist of letters or numbers only!"
+        if (isReserved(field.Node1)) {
+            return "This node name is reserved!"
+        }
+
+        if (!isNameValid(field.Node1)) {
+            return "Please use only letters, numbers, and single spaces!"
         }
 
         if (doesNodeExist(field.Node1)) {
@@ -64,7 +72,7 @@ export const Tools = (props: WhiteboardProps) => {
         }
 
         const save = [...nodes, newNode]
-        const error = await saveGraph(userEmail, currentGraph, save, undefined)
+        const error = await saveGraph(email, currentGraph, save, undefined)
 
         if (error) return error
 
@@ -85,10 +93,10 @@ export const Tools = (props: WhiteboardProps) => {
         const node1 = field.Node1.toLowerCase()
 
         if (doesNodeExist(field.Node1)) {
-            const save1 = nodes.filter((node) => node.data.label !== capitalizeWord(node1))
+            const save1 = nodes.filter((node) => node.id !== node1)
             const save2 = edges.filter((edge) => edge.target !== node1 && edge.source !== node1)
             const error = await saveGraph(
-                userEmail,
+                email,
                 currentGraph,
                 save1,
                 save2
@@ -145,11 +153,12 @@ export const Tools = (props: WhiteboardProps) => {
         const edgeExists = edges.find((edge) => edge.id === `${node1}-${node2}`)
 
         if (edgeExists) {
+            console.log("Replaced blud")
             const updatedEdge: Edge = { ...edgeExists, label: cost }
             const save = edges.map((edge) => edge.id === updatedEdge.id ? updatedEdge : edge)
 
             const error = await saveGraph(
-                userEmail,
+                email,
                 currentGraph,
                 undefined,
                 save
@@ -160,8 +169,12 @@ export const Tools = (props: WhiteboardProps) => {
             setEdges(save)
             return null
         }
+        console.log(edges)
 
-        const reverseExists = edges.some((edge) => edge.id === `${node2}-${node1}`)
+        const reverseEdge = edges.find((edge) => edge.id === `${node2}-${node1}`)
+
+        console.log(reverseEdge)
+        console.log("Found a reverse blud")
 
         const newEdge: Edge = {
             id: `${node1}-${node2}`,
@@ -169,8 +182,8 @@ export const Tools = (props: WhiteboardProps) => {
             target: `${getNodeId(node2)}`,
             label: `${field.Cost}`,
             type: "smoothstep",
-            sourceHandle: reverseExists ? "bottom" : "top",
-            targetHandle: reverseExists ? "bottom" : "top",
+            sourceHandle: reverseEdge?.sourceHandle === "top" ? "bottom" : "top",
+            targetHandle: reverseEdge?.targetHandle === "top" ? "bottom" : "top",
             zIndex: 0,
             style: {
                 stroke: `#b1b1b7`
@@ -183,7 +196,7 @@ export const Tools = (props: WhiteboardProps) => {
             },
         }
 
-        const error = await saveGraph(userEmail, currentGraph, undefined, [...edges, newEdge])
+        const error = await saveGraph(email, currentGraph, undefined, [...edges, newEdge])
 
         if (error) return error
 
@@ -217,7 +230,7 @@ export const Tools = (props: WhiteboardProps) => {
         if (targetEdge) {
             const save = edges.filter((edge) => edge.id !== `${node1}-${node2}`)
             const error = await saveGraph(
-                userEmail,
+                email,
                 currentGraph,
                 undefined,
                 save
@@ -247,6 +260,10 @@ export const Tools = (props: WhiteboardProps) => {
 
         if (nodes.length <= 1) {
             return "Can't find a path when there's less than one node!"
+        }
+
+        if (!edges.length) {
+            return "Can't find a path when there's no connections!"
         }
 
         if (!doesNodeExist(node1)) {
@@ -305,6 +322,81 @@ export const Tools = (props: WhiteboardProps) => {
         action: findPath
     }
 
+    const minGraph = async (field: ToolsDialogBoxField): Promise<string | null> => {
+        if (nodes.length <= 1) {
+            return "Can't find a minimise the graph when there's less than one node!"
+        }
+
+        if (!edges.length) {
+            return "Can't find a minimise the graph when there's no connections!"
+        }
+
+        const edgeWeightTable: Record<string, number> = {}
+        edges.forEach((edge) => {
+            edgeWeightTable[`${edge.source}-${edge.target}`] = Number(edge.label)
+        })
+
+        // Since kruskal's algorithm only works on undirected graphs,
+        // We check if every A -> B has a reverse B -> A with an equal
+        // weight. Which is basically an undirected graph.
+        const isGraphSymmetric = edges.every((edge) => {
+            const reverseKey = `${edge.target}-${edge.source}`
+            return reverseKey in edgeWeightTable &&
+                edgeWeightTable[reverseKey] === Number(edge.label)
+        })
+
+        if (isGraphSymmetric) {
+            const mstEdges = kruskal(nodes, edges)
+            const save = mstEdges.reduce<Edge[]>((acc, edge) => {
+                acc.push(edge)
+                acc.push({
+                    ...edge,
+                    id: `${edge.target}-${edge.source}`,
+                    source: edge.target,
+                    target: edge.source,
+                    sourceHandle: "bottom",
+                    targetHandle: "bottom"
+                })
+                return acc
+            }, [])
+
+            const error = await saveGraph(
+                email,
+                currentGraph,
+                undefined,
+                save
+            )
+
+            if (error) return error
+
+            setEdges(save)
+        } else {
+            const finalEdges = chuLiuEdmond(nodes, edges)
+
+            const error = await saveGraph(
+                email,
+                currentGraph,
+                undefined,
+                finalEdges
+            )
+
+            if (error) return error
+
+            setEdges(finalEdges)
+        }
+
+        return null
+    }
+
+    const minGraphProp: ToolsDialogBoxProps = {
+        title: "Warning this action is permanent!",
+        description: "Uses Kruskal's algorithm to generate a MST if your graph is symmetric, otherwise uses Chu-Liu-Edmonds!",
+        btnName: "Minimize Graph Cost",
+        icon: <Network size={18} />,
+        inputsToCreate: [],
+        action: minGraph
+    }
+
     return (
         <>
             <ToolsDialogBox {...addNodeProp}></ToolsDialogBox>
@@ -312,6 +404,7 @@ export const Tools = (props: WhiteboardProps) => {
             <ToolsDialogBox {...addEdgeProp}></ToolsDialogBox>
             <ToolsDialogBox {...removeEdgeProp}></ToolsDialogBox>
             <ToolsDialogBox {...findPathProp}></ToolsDialogBox>
+            <ToolsDialogBox {...minGraphProp}></ToolsDialogBox>
         </>
     )
 

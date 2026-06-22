@@ -1,3 +1,4 @@
+import { auth } from '@clerk/nextjs/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
@@ -7,6 +8,8 @@ import { cookies } from 'next/headers'
  */
 export async function createClient() {
   const cookieStore = await cookies()
+  const { getToken } = await auth()
+  const jwtToken = await getToken({template: "supabase"})
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,6 +31,11 @@ export async function createClient() {
           }
         },
       },
+      global: {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`
+        }
+      }
     }
   )
 }
