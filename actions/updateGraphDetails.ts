@@ -7,11 +7,11 @@ import { auth } from "@clerk/nextjs/server"
 
 export const updateGraphDetails = async (
     email: string,
-    graphName: string, 
-    nodes?: Node[], 
+    graphName: string,
+    nodes?: Node[],
     edges?: Edge[]
 ): Promise<DbActionResponse> => {
-    
+
     const { isAuthenticated } = await auth()
 
     if (!isAuthenticated) return { success: false, error: "Unauthorized!" }

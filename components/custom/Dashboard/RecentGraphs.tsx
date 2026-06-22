@@ -19,10 +19,10 @@ export const RecentGraphs = (prop: RecentGraphsProps) => {
     const [error, setError] = useState("")
     const [showSpinner, setSpinner] = useState(true)
     const { isLoaded, isSignedIn, user } = useUser()
-    const email = user?.primaryEmailAddress?.emailAddress!
+    const email = user?.primaryEmailAddress?.emailAddress
 
     useEffect(() => {
-        if (!isLoaded || !isSignedIn) return
+        if (!isLoaded || !isSignedIn || !email) return
 
         const getRecentGraphs = async () => {
             const { success, error, result } = await getUserRecentGraphs(email)
@@ -39,10 +39,10 @@ export const RecentGraphs = (prop: RecentGraphsProps) => {
 
         getRecentGraphs()
 
-    }, [isLoaded, isSignedIn, setGraphNames])
+    }, [isLoaded, isSignedIn, setGraphNames, email])
 
     const loadGraph = async (graphName: string) => {
-        const { success, error, result } = await getGraphDetails(email, graphName)
+        const { success, error, result } = await getGraphDetails(email!, graphName)
 
         if (!success) { setError(error); return }
 

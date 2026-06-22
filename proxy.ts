@@ -16,8 +16,8 @@ export default clerkMiddleware(async (auth, request) => {
   }
 
   if (device.type === undefined && request.nextUrl.pathname === "/desktop-only") {
-  return NextResponse.redirect(new URL("/dashboard", request.url))
-}
+    return NextResponse.redirect(new URL("/dashboard", request.url))
+  }
 
   if (userId && request.nextUrl.pathname === '/') {
     return NextResponse.redirect(new URL('/dashboard', request.url))

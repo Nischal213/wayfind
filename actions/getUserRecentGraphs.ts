@@ -5,16 +5,16 @@ import { DbQueryResponse } from "@/lib/types"
 import { auth } from "@clerk/nextjs/server"
 
 interface RecentGraphsResponse {
-    graphs : { name: string }[]
+    graphs: { name: string }[]
 }
 
-export const getUserRecentGraphs = async (email: string) : Promise<DbQueryResponse<RecentGraphsResponse>> => {
+export const getUserRecentGraphs = async (email: string): Promise<DbQueryResponse<RecentGraphsResponse>> => {
     const { isAuthenticated } = await auth()
-    
-    if (!isAuthenticated) return { success: false, error: "Unauthorized!", result: {graphs: []} }
+
+    if (!isAuthenticated) return { success: false, error: "Unauthorized!", result: { graphs: [] } }
 
     const supabase = await createClient()
-    const { data , error: gError } = await supabase
+    const { data, error: gError } = await supabase
         .from("users")
         .select("graphs!inner(name)")
         .eq("email", email)
@@ -22,7 +22,7 @@ export const getUserRecentGraphs = async (email: string) : Promise<DbQueryRespon
         .single()
 
     if (gError) {
-        return { success: false, error: gError.message, result: {graphs: []} }
+        return { success: false, error: gError.message, result: { graphs: [] } }
     } else {
         return { success: true, error: "", result: data }
     }

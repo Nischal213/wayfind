@@ -20,7 +20,7 @@ export const Whiteboard = (prop: WhiteboardProps) => {
     const { nodes, setNodes, edges, setEdges, currentGraph } = prop
     const nodeTypes = { custom: CustomNode }
     const { user } = useClerk()
-    const userEmail = user?.primaryEmailAddress?.emailAddress
+    const email = user?.primaryEmailAddress?.emailAddress
 
     const onNodesChange: OnNodesChange = useCallback(
         (changes) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
@@ -32,9 +32,11 @@ export const Whiteboard = (prop: WhiteboardProps) => {
     )
 
     const onNodesDrapStop = async () => {
-        const { success, error } = await updateGraphDetails(userEmail, currentGraph, nodes, undefined)
+        if (!email) return
 
-        if (!success) console.log(error)
+        const { success } = await updateGraphDetails(email, currentGraph, nodes, undefined)
+
+        if (!success) return
     }
 
     return (

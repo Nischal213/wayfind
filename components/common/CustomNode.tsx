@@ -1,14 +1,14 @@
 import { Handle, Position } from '@xyflow/react'
 
 interface CustomNodeData {
-    label : string
+    label: string
 }
 
 interface CustomNodeProps {
     data: CustomNodeData
 }
 
-export default function CustomNode(props : CustomNodeProps) {
+export default function CustomNode(props: CustomNodeProps) {
     const { data } = props
 
     return (
