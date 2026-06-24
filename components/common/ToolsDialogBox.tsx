@@ -9,7 +9,7 @@ import { ToolsDialogBoxProps, ToolsDialogBoxField } from "@/lib/types"
 
 
 export const ToolsDialogBox = (props: ToolsDialogBoxProps) => {
-    const { title, description, btnName, icon, inputsToCreate, action } = props
+    const { title, description, btnName, btnColor = "text-neutral-700", icon, inputsToCreate, action } = props
     const [field, setField] = useState<ToolsDialogBoxField>({ Node1: "", Node2: "", Cost: "" })
     const [open, setOpen] = useState(false)
     const [error, setError] = useState("")
@@ -41,7 +41,7 @@ export const ToolsDialogBox = (props: ToolsDialogBoxProps) => {
                         setOpen(true)
                         setField({ Node1: "", Node2: "", Cost: "" })
                     }}
-                    className="flex items-center gap-2 mx-4 mt-4 px-3 py-2 rounded-lg hover:bg-neutral-300 text-sm text-neutral-700"
+                    className={`${btnColor} flex w-[90%] gap-x-2 ml-4 mt-4 px-3 py-2 rounded-lg hover:bg-neutral-300 text-[13px] tracking-wide font-medium`}
                 >
                     {icon}
                     {btnName}

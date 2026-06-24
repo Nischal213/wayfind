@@ -64,6 +64,7 @@ export const CustomSidebarUtils = (props: CustomSidebarUtilsProps) => {
         title: "Remove graph",
         description: "Use this to remove a graph",
         btnName: "Remove graph",
+        btnColor: "text-red-600",
         icon: <CircleMinus size={18} />,
         inputName: "Graph name",
         action: removeGraph

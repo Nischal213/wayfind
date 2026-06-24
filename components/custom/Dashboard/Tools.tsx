@@ -14,7 +14,9 @@ export const Tools = (props: WhiteboardProps) => {
     const { nodes, setNodes, edges, setEdges, currentGraph } = props
     const { screenToFlowPosition } = useReactFlow()
     const { user } = useUser()
-    const email = user!.primaryEmailAddress!.emailAddress!
+    const email = user?.primaryEmailAddress?.emailAddress
+
+    if (!email) return
 
     const doesNodeExist = (fieldNode: string) => {
         if (nodes.length == 0) {
@@ -153,7 +155,6 @@ export const Tools = (props: WhiteboardProps) => {
         const edgeExists = edges.find((edge) => edge.id === `${node1}-${node2}`)
 
         if (edgeExists) {
-            console.log("Replaced blud")
             const updatedEdge: Edge = { ...edgeExists, label: cost }
             const save = edges.map((edge) => edge.id === updatedEdge.id ? updatedEdge : edge)
 
@@ -169,12 +170,8 @@ export const Tools = (props: WhiteboardProps) => {
             setEdges(save)
             return null
         }
-        console.log(edges)
 
         const reverseEdge = edges.find((edge) => edge.id === `${node2}-${node1}`)
-
-        console.log(reverseEdge)
-        console.log("Found a reverse blud")
 
         const newEdge: Edge = {
             id: `${node1}-${node2}`,
@@ -317,6 +314,7 @@ export const Tools = (props: WhiteboardProps) => {
         title: "Find shortest path",
         description: "Uses Djikstra's algorithm if all costs are positive otherwise uses Bellman-Ford algorithm!",
         btnName: "Find path",
+        btnColor: "text-blue-800/95",
         icon: <ChartNetwork size={18} />,
         inputsToCreate: ["Node1", "Node2"],
         action: findPath
@@ -392,20 +390,34 @@ export const Tools = (props: WhiteboardProps) => {
         title: "Warning this action is permanent!",
         description: "Uses Kruskal's algorithm to generate a MST if your graph is symmetric, otherwise uses Chu-Liu-Edmonds!",
         btnName: "Minimize Graph Cost",
+        btnColor: "text-blue-800/95",
         icon: <Network size={18} />,
         inputsToCreate: [],
         action: minGraph
     }
 
     return (
-        <>
-            <ToolsDialogBox {...addNodeProp}></ToolsDialogBox>
-            <ToolsDialogBox {...removeNodeProp}></ToolsDialogBox>
-            <ToolsDialogBox {...addEdgeProp}></ToolsDialogBox>
-            <ToolsDialogBox {...removeEdgeProp}></ToolsDialogBox>
-            <ToolsDialogBox {...findPathProp}></ToolsDialogBox>
-            <ToolsDialogBox {...minGraphProp}></ToolsDialogBox>
-        </>
+        <div className="flex flex-col gap-y-4">
+            <div className="mt-5">
+                <h2 className="text-neutral-500 ml-7 text-sm"> NODES </h2>
+                <ToolsDialogBox {...addNodeProp}></ToolsDialogBox>
+                <ToolsDialogBox {...removeNodeProp}></ToolsDialogBox>
+                <div className="h-px mt-4 w-[90%] bg-neutral-800 mx-auto"></div>
+            </div>
+
+            <div>
+                <h2 className="text-neutral-500 ml-7 text-sm"> EDGES </h2>
+                <ToolsDialogBox {...addEdgeProp}></ToolsDialogBox>
+                <ToolsDialogBox {...removeEdgeProp}></ToolsDialogBox>
+                <div className="h-px mt-3 w-[90%] bg-neutral-800 mx-auto"></div>
+            </div>
+
+            <div>
+                <h2 className="text-neutral-500 ml-7 text-sm"> ANALYSIS </h2>
+                <ToolsDialogBox {...findPathProp}></ToolsDialogBox>
+                <ToolsDialogBox {...minGraphProp}></ToolsDialogBox>
+            </div>
+        </div>
     )
 
 }

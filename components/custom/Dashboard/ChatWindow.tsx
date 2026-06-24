@@ -19,11 +19,17 @@ export const ChatWindow = (props: WhiteboardProps) => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const { user } = useUser()
-    const email = user!.primaryEmailAddress!.emailAddress!
+    const email = user?.primaryEmailAddress?.emailAddress
 
     const sendMessage = async () => {
         setError("")
         setLoading(true)
+
+        if (!email) {
+            setLoading(false)
+            setError("Please wait for clerk to finish loading!")
+            return
+        }
 
         const prompt = textAreaRef?.current?.value
 
@@ -52,8 +58,6 @@ export const ChatWindow = (props: WhiteboardProps) => {
             }
 
             const data: GeminiResponse = await response.json()
-
-            console.log(data)
 
             if (data.valid) {
 

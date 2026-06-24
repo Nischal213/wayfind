@@ -7,7 +7,7 @@ import { UtilsDialogBoxProps } from "@/lib/types";
 import { SidebarMenuButton } from "../ui/sidebar";
 
 export const UtilsDialogBox = (props: UtilsDialogBoxProps) => {
-    const { title, description, btnName, icon, inputName, action } = props
+    const { title, description, btnName, btnColor, icon, inputName, action } = props
     const [userInput, setUserInput] = useState("")
     const [open, setOpen] = useState(false)
     const [error, setError] = useState("")
@@ -39,10 +39,10 @@ export const UtilsDialogBox = (props: UtilsDialogBoxProps) => {
                         setOpen(true)
                         setUserInput("")
                     }}>
-                    <div className="group-data-[state=collapsed]:absolute group-data-[state=collapsed]:left-2">
+                    <div className={`${btnColor || ""} group-data-[state=collapsed]:absolute group-data-[state=collapsed]:left-2`}>
                         {icon}
                     </div>
-                    <div className="group-data-[state=collapsed]:hidden">
+                    <div className={`${btnColor || ""} group-data-[state=collapsed]:hidden`}>
                         {btnName}
                     </div>
                 </SidebarMenuButton>
