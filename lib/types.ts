@@ -1,5 +1,6 @@
 import { type Node, type Edge } from "@xyflow/react"
 import { Dispatch, ReactNode, SetStateAction } from "react"
+import { Tiers } from "./stripe/types"
 
 type input = "Node1" | "Node2" | "Cost"
 
@@ -9,24 +10,29 @@ export interface ToolsDialogBoxField {
     Cost: string
 }
 
-export interface ToolsDialogBoxProps {
+interface DialogBoxBaseProps {
     title: string
     description: string
     btnName: string
     btnColor?: string
     icon: ReactNode
-    inputsToCreate: input[]
-    action: (field: ToolsDialogBoxField) => Promise<string | null>
 }
 
-export interface UtilsDialogBoxProps {
-    title: string
-    description: string
-    btnName: string
-    btnColor?: string
-    icon: ReactNode
+export type ToastType = "error" | "warning" | "success"
+
+export interface ToastProps {
+    msg: string
+    type: ToastType
+}
+
+export interface ToolsDialogBoxProps extends DialogBoxBaseProps {
+    inputsToCreate: input[]
+    action: (field: ToolsDialogBoxField) => Promise<ToastProps>
+}
+
+export interface UtilsDialogBoxProps extends DialogBoxBaseProps {
     inputName: string
-    action: (graphName: string) => Promise<string | null>
+    action: (graphName: string) => Promise<ToastProps>
 }
 
 export interface WhiteboardProps {
@@ -35,6 +41,10 @@ export interface WhiteboardProps {
     edges: Edge[]
     setEdges: Dispatch<SetStateAction<Edge[]>>
     currentGraph: string
+}
+
+export interface ToolSideBarProps extends WhiteboardProps {
+    userTier: Tiers
 }
 
 export interface GeminiNodes {

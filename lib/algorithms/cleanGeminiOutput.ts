@@ -7,9 +7,10 @@ export const normalizeNodes = (
   geminiNodes: GeminiNodes[],
   screenToFlowPosition: (clientPosition: XYPosition) => XYPosition) => {
 
-  const nodesSet = new Set(nodes.map((node) => node.data.label))
+  const nodesLabelSet = new Set(nodes.map((node) => node.data.label))
+  const nodesIdSet = new Set(nodes.map((node) => node.id))
   geminiNodes = geminiNodes.filter((gNodes) =>
-    isNameValid(gNodes.label) && (!isReserved(gNodes.label) || !nodesSet.has(gNodes.label))
+    isNameValid(gNodes.label) && (!isReserved(gNodes.label) || !nodesLabelSet.has(gNodes.label)) && !nodesIdSet.has(gNodes.id)
   )
 
   return geminiNodes.map((gNodes) => {

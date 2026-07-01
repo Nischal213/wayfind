@@ -24,7 +24,7 @@ export const GoogleOAuthField = (props: GoogleOAuthField) => {
         <button
             type="button"
             onClick={useGoogleOauth}
-            className="w-full text-black flex items-center justify-center gap-2 bg-[#fefefe] border-2 border-neutral-200/90 py-3 rounded-lg hover:bg-neutral-100 transition"
+            className="cursor-pointer w-full text-black flex items-center justify-center gap-2 bg-[#fefefe] border-2 border-neutral-200/90 py-3 rounded-lg hover:bg-neutral-100 transition"
         >
             <Image
                 src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png"

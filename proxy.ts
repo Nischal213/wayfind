@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/sso-callback(.*)',
   "/desktop-only",
+  "/api/stripe/webhook",
 ])
 
 export default clerkMiddleware(async (auth, request) => {

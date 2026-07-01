@@ -1,3 +1,4 @@
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { GeminiResponse } from "@/lib/types";
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
@@ -6,19 +7,38 @@ interface GeminiError {
     status: number
 }
 
+interface CreditResponse {
+    allowed: boolean
+    current_usage: number
+    max_limit: number
+}
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+
 const isGeminiError = (e: unknown): e is GeminiError => {
     return typeof e === "object" && e !== null && "status" in e
 }
 
-
 export async function POST(request: NextRequest) {
-    const { prompt } = await request.json()
+    const { prompt, email } = await request.json()
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+    const { data, error } = await supabaseAdmin
+        .rpc('get_credits', {
+            user_email_param: email
+        })
+        .single()
+        .overrideTypes<CreditResponse>()
+
+    if (!data || error) return NextResponse.json({ error: error?.message || "Something went wrong!" }, { status: 400 })
+
+
+    if (!data.allowed) {
+        return NextResponse.json({ error: `Limit reached. You've used ${data.current_usage}/${data.max_limit} AI generations today.` }, { status: 429 })
+    }
 
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-lite",
+            model: "gemini-2.5-flash",
             config: {
                 systemInstruction: `
             You are a graph extraction engine. Convert ANY user message into a JSON graph operation.
@@ -140,7 +160,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(
             { error: "Something went wrong with Gemini's servers!" },
-            { status: 502 }
+            { status: 503 }
         )
     }
 }

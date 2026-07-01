@@ -83,7 +83,7 @@ export const LoginForm = (props: LoginFormProps) => {
             <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#226aea] text-[#EDEDED] font-semibold py-3 rounded-lg hover:bg-blue-700/97 transition disabled:opacity-50"
+                className="cursor-pointer w-full bg-[#226aea] text-[#EDEDED] font-semibold py-3 rounded-lg hover:bg-blue-700/97 transition disabled:opacity-50"
             >
                 {loading ? "Sending..." : "Continue with email"}
             </button>

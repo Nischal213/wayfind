@@ -5,12 +5,12 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { UtilsDialogBoxProps } from "@/lib/types";
 import { SidebarMenuButton } from "../ui/sidebar";
+import { showToast } from "@/lib/utils";
 
 export const UtilsDialogBox = (props: UtilsDialogBoxProps) => {
     const { title, description, btnName, btnColor, icon, inputName, action } = props
     const [userInput, setUserInput] = useState("")
     const [open, setOpen] = useState(false)
-    const [error, setError] = useState("")
 
     const updateUserInput = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
@@ -19,12 +19,12 @@ export const UtilsDialogBox = (props: UtilsDialogBoxProps) => {
     }
 
     const onConfirm = async () => {
-        const error = await action(userInput)
+        const { msg, type } = await action(userInput)
 
-        if (error) {
-            setError(error)
+        if (type !== "success") {
+            showToast(msg, type)
         } else {
-            setError("")
+            showToast(msg, type)
             setOpen(false)
         }
     }
@@ -33,9 +33,9 @@ export const UtilsDialogBox = (props: UtilsDialogBoxProps) => {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <SidebarMenuButton
+                    className="cursor-pointer"
                     tooltip={title}
                     onClick={() => {
-                        setError("")
                         setOpen(true)
                         setUserInput("")
                     }}>
@@ -63,22 +63,17 @@ export const UtilsDialogBox = (props: UtilsDialogBoxProps) => {
                         <Label className="mb-2"> {inputName} </Label>
                         <Input name={inputName} value={userInput} onChange={updateUserInput} />
                     </Field>
-
-                    {error ?
-                        <p className='text-red-600 text-center'> {error} </p>
-                        :
-                        null}
                 </FieldGroup>
 
                 <DialogFooter className="flex items-center justify-end gap-3 pt-4">
                     <DialogClose asChild>
-                        <button className="px-4 py-2 rounded-lg text-sm font-bold text-gray-700 bg-neutral-50 border border-gray-200 shadow-sm hover:bg-gray-100 transition-colors">
+                        <button className="cursor-pointer px-4 py-2 rounded-lg text-sm font-bold text-gray-700 bg-neutral-50 border border-gray-200 shadow-sm hover:bg-gray-100 transition-colors">
                             Close
                         </button>
                     </DialogClose>
                     <button
                         onClick={onConfirm}
-                        className="px-4 py-2 rounded-lg text-sm font-bold text-[#EDEDED] bg-black hover:bg-neutral-700 transition-colors"
+                        className="cursor-pointer px-4 py-2 rounded-lg text-sm font-bold text-[#EDEDED] bg-black hover:bg-neutral-700 transition-colors"
                     >
                         Confirm
                     </button>

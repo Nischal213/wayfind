@@ -1,33 +1,39 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { GeminiResponse, WhiteboardProps } from "@/lib/types";
+import { GeminiResponse, ToolSideBarProps } from "@/lib/types";
 import { useRef, useState } from "react";
 import { saveGraph } from "@/lib/utils";
 import { useReactFlow } from "@xyflow/react";
 import { normalizeNodes, normalizeEdges } from "@/lib/algorithms/cleanGeminiOutput";
 import { useUser } from "@clerk/nextjs";
+import { featuresTable } from "@/lib/stripe/constants";
+import { showToast } from "@/lib/utils";
 
 interface Failure {
     error: string
     status: number
 }
 
-export const ChatWindow = (props: WhiteboardProps) => {
-    const { nodes, setNodes, edges, setEdges, currentGraph } = props
+export const ChatWindow = (props: ToolSideBarProps) => {
+    const { userTier, nodes, setNodes, edges, setEdges, currentGraph } = props
     const { screenToFlowPosition } = useReactFlow()
     const textAreaRef = useRef<HTMLTextAreaElement>(null)
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState("")
     const { user } = useUser()
     const email = user?.primaryEmailAddress?.emailAddress
 
     const sendMessage = async () => {
-        setError("")
         setLoading(true)
 
         if (!email) {
             setLoading(false)
-            setError("Please wait for clerk to finish loading!")
+            showToast("Please wait for clerk to finish loading!", "warning")
+            return
+        }
+
+        if (nodes.length === featuresTable[userTier].max_nodes_per_graph) {
+            showToast("You have reached the maximum number of nodes.", "warning")
+            setLoading(false)
             return
         }
 
@@ -35,7 +41,7 @@ export const ChatWindow = (props: WhiteboardProps) => {
 
         if (typeof prompt === "undefined" || prompt.trim() === "") {
             setLoading(false)
-            setError("Prompts can't be empty!")
+            showToast("Prompts can't be empty!", "warning")
             return
         }
 
@@ -46,14 +52,14 @@ export const ChatWindow = (props: WhiteboardProps) => {
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ prompt })
+                    body: JSON.stringify({ prompt, email })
                 }
             )
 
             if (!response.ok) {
                 const err: Failure = await response.json()
                 setLoading(false)
-                setError(`Error code ${response.status}: ${err.error}`)
+                showToast(err.error, "error")
                 return
             }
 
@@ -63,6 +69,13 @@ export const ChatWindow = (props: WhiteboardProps) => {
 
                 if (data.nodes.length && data.action !== "delete") {
                     const normalNodes = normalizeNodes(nodes, data.nodes, screenToFlowPosition)
+
+                    if (nodes.length + normalNodes.length > featuresTable[userTier].max_nodes_per_graph) {
+                        showToast("Reached the maximum number of nodes allowed for your plan.", "warning")
+                        setLoading(false)
+                        return
+                    }
+
                     const save = [...nodes, ...normalNodes]
                     const error = await saveGraph(
                         email,
@@ -71,7 +84,7 @@ export const ChatWindow = (props: WhiteboardProps) => {
                         undefined
                     )
 
-                    if (error) { setError(error); return }
+                    if (error) { showToast(error, "error"); return }
                     setNodes(save)
                 }
 
@@ -89,7 +102,7 @@ export const ChatWindow = (props: WhiteboardProps) => {
                         save2
                     )
 
-                    if (error) { setError(error); return }
+                    if (error) { showToast(error, "error"); return }
                     setNodes(save1)
                     setEdges(save2)
                 }
@@ -104,7 +117,7 @@ export const ChatWindow = (props: WhiteboardProps) => {
                         save
                     )
 
-                    if (error) { setError(error); return }
+                    if (error) { showToast(error, "error"); return }
                     setEdges(save)
                 }
 
@@ -118,7 +131,7 @@ export const ChatWindow = (props: WhiteboardProps) => {
                         save
                     )
 
-                    if (error) { setError(error); return }
+                    if (error) { showToast(error, "error"); return }
                     setEdges(save)
                 }
 
@@ -126,12 +139,10 @@ export const ChatWindow = (props: WhiteboardProps) => {
                 return
             } else {
                 setLoading(false)
-                setError("No nodes or connections found!")
                 return
             }
         } catch {
             setLoading(false)
-            setError("Error code 500: Internal server error!")
         }
 
     }
@@ -144,12 +155,7 @@ export const ChatWindow = (props: WhiteboardProps) => {
                 className="resize-none h-40"
                 placeholder="Describe the graph you want to build..."
             />
-
-            {error ?
-                <p className="text-red-600 text-center text-xs font-medium"> {error} </p>
-                : null}
-
-            <Button disabled={loading} onClick={sendMessage}>
+            <Button className="cursor-pointer" disabled={loading} onClick={sendMessage}>
                 {loading ? "Sending" : "Send a message"}
             </Button>
         </div>

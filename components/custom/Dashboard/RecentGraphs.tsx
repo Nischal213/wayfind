@@ -2,6 +2,7 @@ import { getGraphDetails } from "@/actions/getGraphDetails"
 import { getUserRecentGraphs } from "@/actions/getUserRecentGraphs"
 import { SidebarMenu, SidebarMenuButton } from "@/components/ui/sidebar"
 import { Spinner } from "@/components/ui/spinner"
+import { showToast } from "@/lib/utils"
 import { useUser } from "@clerk/nextjs"
 import { Edge, Node } from "@xyflow/react"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
@@ -16,7 +17,6 @@ interface RecentGraphsProps {
 
 export const RecentGraphs = (prop: RecentGraphsProps) => {
     const { graphNames, setGraphNames, setCurrentGraph, setNodes, setEdges } = prop
-    const [error, setError] = useState("")
     const [showSpinner, setSpinner] = useState(true)
     const { isLoaded, isSignedIn, user } = useUser()
     const email = user?.primaryEmailAddress?.emailAddress
@@ -29,12 +29,12 @@ export const RecentGraphs = (prop: RecentGraphsProps) => {
             setSpinner(false)
 
             if (!success) {
-                setError(error)
-                return
+                showToast(error, "error")
             } else {
                 setGraphNames(result.graphs.map((graph) => graph.name))
-                return
             }
+
+            return
         }
 
         getRecentGraphs()
@@ -44,9 +44,8 @@ export const RecentGraphs = (prop: RecentGraphsProps) => {
     const loadGraph = async (graphName: string) => {
         const { success, error, result } = await getGraphDetails(email!, graphName)
 
-        if (!success) { setError(error); return }
+        if (!success) return showToast(error, "error")
 
-        setError("")
         setCurrentGraph(graphName)
         setNodes(result.nodes)
         setEdges(result.edges)
@@ -55,15 +54,14 @@ export const RecentGraphs = (prop: RecentGraphsProps) => {
     return (
         <SidebarMenu>
             {graphNames.map((name, key) =>
-                <SidebarMenuButton className="group-data-[state=collapsed]:hidden" key={key} onClick={() => loadGraph(name)}>
+                <SidebarMenuButton
+                    className="group-data-[state=collapsed]:hidden cursor-pointer"
+                    key={key}
+                    onClick={() => loadGraph(name)}
+                >
                     {name}
                 </SidebarMenuButton>
             )}
-
-            {error ?
-                <p className="text-red-600 text-center text-xs font-medium mt-2"> {error} </p>
-                :
-                null}
 
             {showSpinner ?
                 <div className="flex justify-center mr-3 mt-10 items-center gap-2">
