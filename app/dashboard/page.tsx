@@ -9,11 +9,15 @@ import { ReactFlowProvider, type Edge, type Node } from "@xyflow/react";
 import { createUser } from "@/actions/createUser";
 import { useUser } from "@clerk/nextjs";
 import { ChartNoAxesColumnIncreasing } from "lucide-react";
+import { getUserBilling } from "@/actions/getUserBilling";
+import { Tiers } from "@/lib/stripe/types";
+import { showToast } from "@/lib/utils";
 
 export default function DashBoardPage() {
     const [nodes, setNodes] = useState<Node[]>([])
     const [edges, setEdges] = useState<Edge[]>([])
     const [currentGraph, setCurrentGraph] = useState<string>("")
+    const [userTier, setUserTier] = useState<Tiers>("")
     const { isLoaded, isSignedIn, user } = useUser()
     const email = user?.primaryEmailAddress?.emailAddress
 
@@ -22,24 +26,32 @@ export default function DashBoardPage() {
 
         const makeNewUser = async () => {
             const { success, error } = await createUser(email)
+            if (!success) return showToast(error, "error")
+        }
 
-            if (!success) {
-                throw new Error(`${error}`)
+        const getUserTier = async () => {
+            const { success, error, result } = await getUserBilling(email)
+
+            if (success) {
+                return setUserTier(result.subscriptionTier)
+            } else {
+                return showToast(error, "error")
             }
         }
 
         makeNewUser()
+        getUserTier()
     }, [isLoaded, isSignedIn, email])
 
     return (
         <ReactFlowProvider>
             <SidebarProvider>
                 <div className="flex h-screen w-screen bg-white">
-                    <CustomSidebar currentGraph={currentGraph} setCurrentGraph={setCurrentGraph} setNodes={setNodes} setEdges={setEdges} />
+                    <CustomSidebar userTier={userTier} currentGraph={currentGraph} setCurrentGraph={setCurrentGraph} setNodes={setNodes} setEdges={setEdges} />
                     {currentGraph ?
                         <>
                             <Whiteboard nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} currentGraph={currentGraph} />
-                            <ToolSideBar nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} currentGraph={currentGraph} />
+                            <ToolSideBar userTier={userTier} nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} currentGraph={currentGraph} />
                         </>
                         :
                         <div className="flex flex-col items-center justify-center w-full min-h-[52vh] px-6 text-center select-none">
@@ -57,7 +69,6 @@ export default function DashBoardPage() {
                                     Your whiteboard is ready. Load a saved graph to pick up where you left off,
                                     or create a new graph to start visualising your data.
                                 </p>
-
                             </div>
                         </div>
                     }

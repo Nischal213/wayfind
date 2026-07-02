@@ -7,9 +7,11 @@ export const normalizeNodes = (
   geminiNodes: GeminiNodes[],
   screenToFlowPosition: (clientPosition: XYPosition) => XYPosition) => {
 
-  const nodesSet = new Set(nodes.map((node) => node.data.label))
+  const nodesIdSet = new Set(nodes.map((node) => node.id))
   geminiNodes = geminiNodes.filter((gNodes) =>
-    isNameValid(gNodes.label) && (!isReserved(gNodes.label) || !nodesSet.has(gNodes.label))
+    isNameValid(gNodes.label) &&
+    !isReserved(gNodes.label) &&
+    !nodesIdSet.has(gNodes.id)
   )
 
   return geminiNodes.map((gNodes) => {
@@ -37,14 +39,14 @@ export const normalizeEdges = (edges: Edge[], geminiEdges: GeminiEdges[]) => {
     edges.map((edge) => [edge.id, edge])
   )
 
-  return geminiEdges
+  geminiEdges
     .filter((gEdges) => {
-      const edgeReserved = !isReserved(gEdges.source) || !isReserved(gEdges.target)
-      const edgeValid = isNameValid(gEdges.source) || isNameValid(gEdges.target)
+      const isSourceValid = !isReserved(gEdges.source) && isNameValid(gEdges.source)
+      const isTargetValid = !isReserved(gEdges.target) && isNameValid(gEdges.target)
 
-      return edgeReserved || edgeValid
+      return isSourceValid && isTargetValid
     })
-    .map((gEdges) => {
+    .forEach((gEdges) => {
       const id = `${gEdges.source}-${gEdges.target}`
       const reverseEdge = edgesRecord[`${gEdges.target}-${gEdges.source}`]
       const edgeExists = edgesRecord[id]
@@ -79,4 +81,6 @@ export const normalizeEdges = (edges: Edge[], geminiEdges: GeminiEdges[]) => {
       edgesRecord[id] = normalEdge
       return normalEdge
     })
+
+  return Object.values(edgesRecord)
 }

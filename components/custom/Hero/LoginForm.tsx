@@ -74,16 +74,16 @@ export const LoginForm = (props: LoginFormProps) => {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#2a2a2a] border border-white/10 p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-white/30 text-white"
+                className="w-full bg-[#f1f3f2] border-2 border-[#ebebeb] p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-300 text-black"
                 required
             />
 
-            {error && <p className="text-red-400 text-xs text-center w-full">{error}</p>}
+            {error && <p className="text-red-500 text-sm text-center w-full font-medium">{error}</p>}
 
             <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-white text-black font-semibold py-3 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
+                className="cursor-pointer w-full bg-[#226aea] text-[#EDEDED] font-semibold py-3 rounded-lg hover:bg-blue-700/97 transition disabled:opacity-50"
             >
                 {loading ? "Sending..." : "Continue with email"}
             </button>

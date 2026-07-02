@@ -1,20 +1,23 @@
 import { MarkerType, type Node, type Edge, useReactFlow } from "@xyflow/react"
 import { ToolsDialogBox } from "@/components/common/ToolsDialogBox"
 import { ChartNetwork, CircleMinus, CirclePlus, Network, Spline, SplinePointer } from "lucide-react"
-import { ToolsDialogBoxField, ToolsDialogBoxProps, WhiteboardProps } from "@/lib/types"
+import { ToolsDialogBoxField, ToolsDialogBoxProps, ToolSideBarProps } from "@/lib/types"
 import { isNameValid, capitalizeWord, saveGraph, isReserved } from "@/lib/utils"
 import { bellmanford } from "@/lib/algorithms/bellmanford"
 import { djikstra } from "@/lib/algorithms/djikstra"
 import { kruskal } from "@/lib/algorithms/kruskal"
 import { chuLiuEdmond } from "@/lib/algorithms/chuLiuEdmond"
 import { useUser } from "@clerk/nextjs"
+import { featuresTable } from "@/lib/stripe/constants"
+import { ToastProps } from "@/lib/types"
 
-
-export const Tools = (props: WhiteboardProps) => {
-    const { nodes, setNodes, edges, setEdges, currentGraph } = props
+export const Tools = (props: ToolSideBarProps) => {
+    const { userTier, nodes, setNodes, edges, setEdges, currentGraph } = props
     const { screenToFlowPosition } = useReactFlow()
     const { user } = useUser()
-    const email = user!.primaryEmailAddress!.emailAddress!
+    const email = user?.primaryEmailAddress?.emailAddress
+
+    if (!email) return
 
     const doesNodeExist = (fieldNode: string) => {
         if (nodes.length == 0) {
@@ -39,21 +42,21 @@ export const Tools = (props: WhiteboardProps) => {
         throw new Error("Something went wrong. Go debug it.")
     }
 
-    const addNode = async (field: ToolsDialogBoxField): Promise<string | null> => {
+    const addNode = async (field: ToolsDialogBoxField): Promise<ToastProps> => {
         if (!field.Node1) {
-            return "Node names can't be empty!"
+            return { msg: "Node names can't be empty!", type: "warning" }
         }
-
         if (isReserved(field.Node1)) {
-            return "This node name is reserved!"
+            return { msg: "This node name is reserved!", type: "warning" }
         }
-
         if (!isNameValid(field.Node1)) {
-            return "Please use only letters, numbers, and single spaces!"
+            return { msg: "Please use only letters, numbers, and single spaces!", type: "warning" }
         }
-
         if (doesNodeExist(field.Node1)) {
-            return "Node names must be unique!"
+            return { msg: "Node names must be unique!", type: "warning" }
+        }
+        if (nodes.length === featuresTable[userTier].max_nodes_per_graph) {
+            return { msg: "You've reached the maximum number of nodes for your plan!", type: "warning" }
         }
 
         const nodeX = window.innerWidth / 2 + (Math.random() - 0.5) * 100
@@ -74,10 +77,10 @@ export const Tools = (props: WhiteboardProps) => {
         const save = [...nodes, newNode]
         const error = await saveGraph(email, currentGraph, save, undefined)
 
-        if (error) return error
+        if (error) return { msg: error, type: "error" }
 
         setNodes(save)
-        return null
+        return { msg: "Node successfully added!", type: "success" }
     }
 
     const addNodeProp: ToolsDialogBoxProps = {
@@ -89,7 +92,7 @@ export const Tools = (props: WhiteboardProps) => {
         action: addNode
     }
 
-    const removeNode = async (field: ToolsDialogBoxField): Promise<string | null> => {
+    const removeNode = async (field: ToolsDialogBoxField): Promise<ToastProps> => {
         const node1 = field.Node1.toLowerCase()
 
         if (doesNodeExist(field.Node1)) {
@@ -102,58 +105,57 @@ export const Tools = (props: WhiteboardProps) => {
                 save2
             )
 
-            if (error) return error
+            if (error) return { msg: error, type: "error" }
 
             setNodes(save1)
             setEdges(save2)
-            return null
+            return { msg: "Node successfully removed!", type: "success" }
         } else {
-            return "That node doesn't exist!"
+            return { msg: "That node doesn't exist!", type: "warning" }
         }
     }
 
     const removeNodeProp: ToolsDialogBoxProps = {
         title: "Remove node",
-        description: "To delete multiple items quickly, hold Shift and drag a selection box around them, then press Backspace!",
+        description: "To delete multiple nodes quickly, use the chatbot!",
         btnName: "Remove node",
         icon: <CircleMinus size={18} />,
         inputsToCreate: ["Node1"],
         action: removeNode
     }
 
-    const addEdge = async (field: ToolsDialogBoxField): Promise<string | null> => {
+    const addEdge = async (field: ToolsDialogBoxField): Promise<ToastProps> => {
         const node1 = field.Node1.toLowerCase()
         const node2 = field.Node2.toLowerCase()
         const cost = field.Cost
 
         if (nodes.length <= 1) {
-            return "Can't make an edge when there's less than one node!"
+            return { msg: "Can't make an edge when there's less than one node!", type: "warning" }
         }
 
         if (!doesNodeExist(node1)) {
-            return "First node given doesn't exist!"
+            return { msg: "First node given doesn't exist!", type: "warning" }
         }
 
         if (!doesNodeExist(node2)) {
-            return "Second node given doesn't exist!"
+            return { msg: "Second node given doesn't exist!", type: "warning" }
         }
 
         if (node1 === node2) {
-            return "Can't make an edge to the same node!"
+            return { msg: "Can't make an edge to the same node!", type: "warning" }
         }
 
         if (cost.trim() === "") {
-            return "Cost can't be empty!"
+            return { msg: "Cost can't be empty!", type: "warning" }
         }
 
         if (isNaN(Number(cost))) {
-            return "Cost must be a number!"
+            return { msg: "Cost must be a number!", type: "warning" }
         }
 
         const edgeExists = edges.find((edge) => edge.id === `${node1}-${node2}`)
 
         if (edgeExists) {
-            console.log("Replaced blud")
             const updatedEdge: Edge = { ...edgeExists, label: cost }
             const save = edges.map((edge) => edge.id === updatedEdge.id ? updatedEdge : edge)
 
@@ -164,17 +166,13 @@ export const Tools = (props: WhiteboardProps) => {
                 save
             )
 
-            if (error) return null
+            if (error) return { msg: error, type: "error" }
 
             setEdges(save)
-            return null
+            return { msg: "Edge successfully updated!", type: "success" }
         }
-        console.log(edges)
 
         const reverseEdge = edges.find((edge) => edge.id === `${node2}-${node1}`)
-
-        console.log(reverseEdge)
-        console.log("Found a reverse blud")
 
         const newEdge: Edge = {
             id: `${node1}-${node2}`,
@@ -198,10 +196,10 @@ export const Tools = (props: WhiteboardProps) => {
 
         const error = await saveGraph(email, currentGraph, undefined, [...edges, newEdge])
 
-        if (error) return error
+        if (error) return { msg: error, type: "error" }
 
         setEdges((prevEdges) => [...prevEdges, newEdge])
-        return null
+        return { msg: "Edge successfully added!", type: "success" }
     }
 
     const addEdgeProp: ToolsDialogBoxProps = {
@@ -213,16 +211,16 @@ export const Tools = (props: WhiteboardProps) => {
         action: addEdge
     }
 
-    const removeEdge = async (field: ToolsDialogBoxField): Promise<string | null> => {
+    const removeEdge = async (field: ToolsDialogBoxField): Promise<ToastProps> => {
         const node1 = field.Node1.toLowerCase()
         const node2 = field.Node2.toLowerCase()
 
         if (!doesNodeExist(node1)) {
-            return "First node given doesn't exist!"
+            return { msg: "First node given doesn't exist!", type: "warning" }
         }
 
         if (!doesNodeExist(node2)) {
-            return "Second node given doesn't exist!"
+            return { msg: "Second node given doesn't exist!", type: "warning" }
         }
 
         const targetEdge = edges.find((edge) => edge.id === `${node1}-${node2}`)
@@ -236,42 +234,42 @@ export const Tools = (props: WhiteboardProps) => {
                 save
             )
 
-            if (error) return error
+            if (error) return { msg: error, type: "error" }
 
             setEdges(save)
-            return null
+            return { msg: "Edge successfully removed!", type: "success" }
         } else {
-            return "There is no edge between those nodes!"
+            return { msg: "There is no edge between those nodes!", type: "warning" }
         }
     }
 
     const removeEdgeProp: ToolsDialogBoxProps = {
         title: "Remove edge",
-        description: "To delete multiple items quickly, hold Shift and drag a selection box around them, then press Backspace!",
+        description: "To delete multiple edges quickly use the chatbot!",
         btnName: "Remove edge",
         icon: <SplinePointer size={18} />,
         inputsToCreate: ["Node1", "Node2"],
         action: removeEdge
     }
 
-    const findPath = async (field: ToolsDialogBoxField): Promise<string | null> => {
+    const findPath = async (field: ToolsDialogBoxField): Promise<ToastProps> => {
         const node1 = field.Node1.toLowerCase()
         const node2 = field.Node2.toLowerCase()
 
         if (nodes.length <= 1) {
-            return "Can't find a path when there's less than one node!"
+            return { msg: "Can't find a path when there's less than one node!", type: "warning" }
         }
 
         if (!edges.length) {
-            return "Can't find a path when there's no connections!"
+            return { msg: "Can't find a path when there's no connections!", type: "warning" }
         }
 
         if (!doesNodeExist(node1)) {
-            return "First node given doesn't exist!"
+            return { msg: "First node given doesn't exist!", type: "warning" }
         }
 
         if (!doesNodeExist(node2)) {
-            return "Second node given doesn't exist!"
+            return { msg: "Second node given doesn't exist!", type: "warning" }
         }
 
         const useBellManFord = edges.some((edge) => Number(edge.label) < 0)
@@ -306,9 +304,9 @@ export const Tools = (props: WhiteboardProps) => {
             })
 
             setEdges(updatedEdges)
-            return null
+            return { msg: "Path found!", type: "success" }
         } else {
-            return "No path found between the nodes!"
+            return { msg: "No path found between the nodes!", type: "warning" }
         }
 
     }
@@ -317,18 +315,19 @@ export const Tools = (props: WhiteboardProps) => {
         title: "Find shortest path",
         description: "Uses Djikstra's algorithm if all costs are positive otherwise uses Bellman-Ford algorithm!",
         btnName: "Find path",
+        btnColor: "text-blue-800/95",
         icon: <ChartNetwork size={18} />,
         inputsToCreate: ["Node1", "Node2"],
         action: findPath
     }
 
-    const minGraph = async (): Promise<string | null> => {
+    const minGraph = async (): Promise<ToastProps> => {
         if (nodes.length <= 1) {
-            return "Can't find a minimise the graph when there's less than one node!"
+            return { msg: "Can't find a minimise the graph when there's less than one node!", type: "warning" }
         }
 
         if (!edges.length) {
-            return "Can't find a minimise the graph when there's no connections!"
+            return { msg: "Can't find a minimise the graph when there's no connections!", type: "warning" }
         }
 
         const edgeWeightTable: Record<string, number> = {}
@@ -367,7 +366,7 @@ export const Tools = (props: WhiteboardProps) => {
                 save
             )
 
-            if (error) return error
+            if (error) return { msg: error, type: "error" }
 
             setEdges(save)
         } else {
@@ -380,32 +379,46 @@ export const Tools = (props: WhiteboardProps) => {
                 finalEdges
             )
 
-            if (error) return error
+            if (error) return { msg: error, type: "error" }
 
             setEdges(finalEdges)
         }
 
-        return null
+        return { msg: "Graph minimized!", type: "success" }
     }
 
     const minGraphProp: ToolsDialogBoxProps = {
         title: "Warning this action is permanent!",
         description: "Uses Kruskal's algorithm to generate a MST if your graph is symmetric, otherwise uses Chu-Liu-Edmonds!",
         btnName: "Minimize Graph Cost",
+        btnColor: "text-blue-800/95",
         icon: <Network size={18} />,
         inputsToCreate: [],
         action: minGraph
     }
 
     return (
-        <>
-            <ToolsDialogBox {...addNodeProp}></ToolsDialogBox>
-            <ToolsDialogBox {...removeNodeProp}></ToolsDialogBox>
-            <ToolsDialogBox {...addEdgeProp}></ToolsDialogBox>
-            <ToolsDialogBox {...removeEdgeProp}></ToolsDialogBox>
-            <ToolsDialogBox {...findPathProp}></ToolsDialogBox>
-            <ToolsDialogBox {...minGraphProp}></ToolsDialogBox>
-        </>
+        <div className="flex flex-col gap-y-4">
+            <div className="mt-5">
+                <h2 className="text-neutral-500 ml-7 text-sm"> NODES </h2>
+                <ToolsDialogBox {...addNodeProp}></ToolsDialogBox>
+                <ToolsDialogBox {...removeNodeProp}></ToolsDialogBox>
+                <div className="h-px mt-4 w-[90%] bg-neutral-800 mx-auto"></div>
+            </div>
+
+            <div>
+                <h2 className="text-neutral-500 ml-7 text-sm"> EDGES </h2>
+                <ToolsDialogBox {...addEdgeProp}></ToolsDialogBox>
+                <ToolsDialogBox {...removeEdgeProp}></ToolsDialogBox>
+                <div className="h-px mt-3 w-[90%] bg-neutral-800 mx-auto"></div>
+            </div>
+
+            <div>
+                <h2 className="text-neutral-500 ml-7 text-sm"> ANALYSIS </h2>
+                <ToolsDialogBox {...findPathProp}></ToolsDialogBox>
+                <ToolsDialogBox {...minGraphProp}></ToolsDialogBox>
+            </div>
+        </div>
     )
 
 }

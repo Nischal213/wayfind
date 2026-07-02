@@ -1,65 +1,77 @@
-import { type Node , type Edge } from "@xyflow/react"
+import { type Node, type Edge } from "@xyflow/react"
 import { Dispatch, ReactNode, SetStateAction } from "react"
+import { Tiers } from "./stripe/types"
 
 type input = "Node1" | "Node2" | "Cost"
 
 export interface ToolsDialogBoxField {
-    Node1 : string
-    Node2 : string
-    Cost : string
+    Node1: string
+    Node2: string
+    Cost: string
 }
 
-export interface ToolsDialogBoxProps {
-    title : string
-    description : string
-    btnName : string
-    icon : ReactNode
-    inputsToCreate : input[]
-    action : (field : ToolsDialogBoxField) => Promise<string | null>
-}
-
-export interface UtilsDialogBoxProps {
+interface DialogBoxBaseProps {
     title: string
     description: string
     btnName: string
+    btnColor?: string
     icon: ReactNode
+}
+
+export type ToastType = "error" | "warning" | "success"
+
+export interface ToastProps {
+    msg: string
+    type: ToastType
+}
+
+export interface ToolsDialogBoxProps extends DialogBoxBaseProps {
+    inputsToCreate: input[]
+    action: (field: ToolsDialogBoxField) => Promise<ToastProps>
+}
+
+export interface UtilsDialogBoxProps extends DialogBoxBaseProps {
     inputName: string
-    action: (graphName: string) => Promise<string | null>
+    action: (graphName: string) => Promise<ToastProps>
 }
 
 export interface WhiteboardProps {
-    nodes : Node[]
-    setNodes : Dispatch<SetStateAction<Node[]>>
-    edges : Edge[]
-    setEdges : Dispatch<SetStateAction<Edge[]>>
+    nodes: Node[]
+    setNodes: Dispatch<SetStateAction<Node[]>>
+    edges: Edge[]
+    setEdges: Dispatch<SetStateAction<Edge[]>>
     currentGraph: string
 }
 
+export interface ToolSideBarProps extends WhiteboardProps {
+    userTier: Tiers
+}
+
 export interface GeminiNodes {
-    id : string
-    label : string
+    id: string
+    label: string
 }
 
 export interface GeminiEdges {
-    source : string
-    target : string
-    cost : string
+    source: string
+    target: string
+    cost: string
 }
 
 export interface DeleteGeminiEdges {
-    source : string
-    target : string
+    source: string
+    target: string
 }
 
 type GeminiActions = "create" | "delete" | "mixed"
 
 export interface GeminiResponse {
-    valid : boolean
-    action : GeminiActions
-    nodes : GeminiNodes[]
-    edges : GeminiEdges[]
-    deleteNodes : string[]
-    deleteEdges : DeleteGeminiEdges[]
+    valid: boolean
+    action: GeminiActions
+    nodes: GeminiNodes[]
+    edges: GeminiEdges[]
+    deleteNodes: string[]
+    deleteEdges: DeleteGeminiEdges[]
 }
 
 export interface DbQueryResponse<T> {

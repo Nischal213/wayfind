@@ -26,6 +26,8 @@ export const OtpCard = (prop: OtpCard) => {
 
     const onChange = async (value: string) => {
         setValue(value)
+        setError("")
+
         if (value.length < 6) return
 
         if (isNewUser) {
@@ -92,7 +94,7 @@ export const OtpCard = (prop: OtpCard) => {
     }
 
     return (
-        <div className="flex flex-col items-center gap-y-5">
+        <div className="flex flex-col items-center gap-y-5 text-black">
             <InputOTP maxLength={6} value={value} onChange={onChange}>
                 <InputOTPGroup>
                     <InputOTPSlot index={0} />
@@ -110,7 +112,7 @@ export const OtpCard = (prop: OtpCard) => {
                 </InputOTPGroup>
             </InputOTP>
 
-            {error && <p className="text-red-400 text-xs text-center">{error}</p>}
+            {error && <p className="text-red-500 text-sm text-center w-full font-medium">{error}</p>}
 
             <button
                 type="button"

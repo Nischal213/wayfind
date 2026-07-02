@@ -7,7 +7,7 @@ import { LoginCard } from "./LoginCard";
 
 export const Hero = () => {
     return (
-        <div className="flex bg-[#30302e]">
+        <div className="flex bg-[#fbfbfb]/98">
             <div className="flex flex-col w-[50%] gap-y-10 items-center justify-center bg-[#262624] h-dvh">
                 <div className="flex flex-col gap-y-5 items-center w-[80%]">
                     <h1 className="text-5xl text-pretty [word-spacing:-0.2em]">Draw,describe, <span className="text-blue-500 whitespace-nowrap"> find the path. </span> </h1>
@@ -15,7 +15,7 @@ export const Hero = () => {
 
                 <div className="flex flex-col gap-y-3 w-[80%]">
                     <div className="flex flex-col gap-y-4 w-full max-w-xl">
-                        <div className="flex gap-x-4 items-center p-4 rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300">
+                        <div className="flex gap-x-4 items-center p-4 rounded-xl border border-white/20 hover:bg-white/10 transition-all duration-300">
                             <div className="bg-blue-500/20 p-3 rounded-lg">
                                 <HiCursorClick size={24} className="text-blue-400" />
                             </div>
@@ -24,7 +24,7 @@ export const Hero = () => {
                     </div>
 
                     <div className="flex flex-col gap-y-4 w-full max-w-xl">
-                        <div className="flex gap-x-4 items-center p-4 rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300">
+                        <div className="flex gap-x-4 items-center p-4 rounded-xl border border-white/20 hover:bg-white/10 transition-all duration-300">
                             <div className="bg-blue-400/20 p-3 rounded-lg">
                                 <MdKeyboardAlt size={24} className="text-blue-400" />
                             </div>
@@ -32,7 +32,7 @@ export const Hero = () => {
                         </div>
                     </div>
                     <div className="flex flex-col gap-y-4 w-full max-w-xl">
-                        <div className="flex gap-x-4 items-center p-4 rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300">
+                        <div className="flex gap-x-4 items-center p-4 rounded-xl border border-white/20 hover:bg-white/10 transition-all duration-300">
                             <div className="bg-blue-400/20 p-3 rounded-lg">
                                 <GrNetwork size={24} className="text-blue-400" />
                             </div>
