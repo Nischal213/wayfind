@@ -4,15 +4,17 @@ import { getUserBilling } from "@/actions/getUserBilling"
 import { verifySessionId } from "@/lib/stripe/verifySessionId"
 import { CreditCard, AlertCircle } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 
-export default function SuccessPage() {
+function SuccessContent() {
     const searchParams = useSearchParams()
     const sessionIdValue = searchParams.get("session_id")
     const router = useRouter()
     const [timeOut, setTimeOut] = useState(false)
 
     useEffect(() => {
+        let cancelled = false
+
         const verifyPayment = async () => {
             const { success, complete, email, newTier } = await verifySessionId(sessionIdValue)
 
@@ -23,23 +25,24 @@ export default function SuccessPage() {
                 attempts++
                 if (attempts >= 10) {
                     clearInterval(interval)
-                    setTimeOut(true)
+                    if (!cancelled) setTimeOut(true)
                     return
                 }
 
                 const { result } = await getUserBilling(email)
-                console.log(newTier)
 
                 if (result.subscriptionTier === newTier) {
                     clearInterval(interval)
                     return router.push("/dashboard")
                 }
-
             }, 1000)
         }
 
         verifyPayment()
-    })
+
+        return () => { cancelled = true }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     return (
         <>
@@ -68,13 +71,21 @@ export default function SuccessPage() {
                     <p className="text-neutral-600/90 text-center max-w-sm">
                         Your payment is being confirmed. This usually takes a couple of seconds.
                     </p>
-
                     <div className="flex gap-x-1.5">
                         <div className="w-2 h-2 rounded-full bg-neutral-500 animate-bounce [animation-delay:0ms]" />
                         <div className="w-2 h-2 rounded-full bg-neutral-500 animate-bounce [animation-delay:150ms]" />
                         <div className="w-2 h-2 rounded-full bg-neutral-500 animate-bounce [animation-delay:300ms]" />
                     </div>
-                </div>}
+                </div>
+            }
         </>
+    )
+}
+
+export default function SuccessPage() {
+    return (
+        <Suspense fallback={null}>
+            <SuccessContent />
+        </Suspense>
     )
 }
