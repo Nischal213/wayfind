@@ -67,78 +67,49 @@ export const ChatWindow = (props: ToolSideBarProps) => {
 
             if (data.valid) {
 
-                if (data.nodes.length && data.action !== "delete") {
-                    const normalNodes = normalizeNodes(nodes, data.nodes, screenToFlowPosition)
+                let currentNodes = nodes
+                let currentEdges = edges
 
-                    if (nodes.length + normalNodes.length > featuresTable[userTier].max_nodes_per_graph) {
-                        showToast("Reached the maximum number of nodes allowed for your plan.", "warning")
+                if (data.nodes.length && data.action !== "delete") {
+                    const normalNodes = normalizeNodes(currentNodes, data.nodes, screenToFlowPosition)
+
+                    if (currentNodes.length + normalNodes.length > featuresTable[userTier].max_nodes_per_graph) {
+                        showToast("Reached the maximum number of nodes allowed for your plan!", "warning")
                         setLoading(false)
                         return
                     }
 
-                    const save = [...nodes, ...normalNodes]
-                    const error = await saveGraph(
-                        email,
-                        currentGraph,
-                        save,
-                        undefined
-                    )
-
-                    if (error) { showToast(error, "error"); return }
-                    setNodes(save)
+                    currentNodes = [...currentNodes, ...normalNodes]
                 }
 
                 if (data.deleteNodes.length && data.action !== "create") {
                     const deleteNodesSet = new Set(data.deleteNodes)
-                    const save1 = nodes.filter((node) => !deleteNodesSet.has(node.id))
-                    const save2 = edges.filter((edge) =>
+                    currentNodes = currentNodes.filter((node) => !deleteNodesSet.has(node.id))
+                    currentEdges = currentEdges.filter((edge) =>
                         !deleteNodesSet.has(edge.source) &&
                         !deleteNodesSet.has(edge.target)
                     )
-                    const error = await saveGraph(
-                        email,
-                        currentGraph,
-                        save1,
-                        save2
-                    )
-
-                    if (error) { showToast(error, "error"); return }
-                    setNodes(save1)
-                    setEdges(save2)
                 }
 
                 if (data.edges.length && data.action !== "delete") {
-                    const normalEdges = normalizeEdges(edges, data.edges)
-                    const save = [...edges, ...normalEdges]
-                    const error = await saveGraph(
-                        email,
-                        currentGraph,
-                        undefined,
-                        save
-                    )
-
-                    if (error) { showToast(error, "error"); return }
-                    setEdges(save)
+                    currentEdges = normalizeEdges(currentEdges, data.edges)
                 }
 
                 if (data.deleteEdges.length && data.action !== "create") {
                     const deleteEdgesSet = new Set(data.deleteEdges.map((edge) => `${edge.source}-${edge.target}`))
-                    const save = edges.filter((edge) => !deleteEdgesSet.has(edge.id))
-                    const error = await saveGraph(
-                        email,
-                        currentGraph,
-                        undefined,
-                        save
-                    )
-
-                    if (error) { showToast(error, "error"); return }
-                    setEdges(save)
+                    currentEdges = currentEdges.filter((edge) => !deleteEdgesSet.has(edge.id))
                 }
 
+                const error = await saveGraph(email, currentGraph, currentNodes, currentEdges)
+                if (error) { showToast(error, "error"); return }
+
+                setNodes(currentNodes)
+                setEdges(currentEdges)
                 setLoading(false)
-                return
+                showToast("Graph updated!", "success")
             } else {
                 setLoading(false)
+                showToast("Invalid prompt", "error")
                 return
             }
         } catch {

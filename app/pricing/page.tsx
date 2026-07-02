@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tiers } from "@/lib/stripe/types"
 import { getUserBilling } from "@/actions/getUserBilling"
 import { StripeResponse } from "@/lib/stripe/types"
-import { cn } from "@/lib/utils"
+import { cn, showToast } from "@/lib/utils"
 
 interface Feature {
     label: string
@@ -72,33 +72,32 @@ const pillsArr: PricingTier[] = [
 export default function PricingPage() {
     const router = useRouter()
     const { user, isLoaded } = useUser()
-    const [userTier, setUserTier] = useState<Tiers | null>(null)
+    const [userTier, setUserTier] = useState<Tiers>("free")
+    const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
         if (!isLoaded) return
 
-        const email = user?.primaryEmailAddress?.emailAddress
-        if (!email) {
-            setUserTier("free")
-            return
-        }
+        const fetchUserTier = async () => {
+            const email = user?.primaryEmailAddress?.emailAddress
+            if (!email) return setIsLoading(false)
 
-        const getUserTier = async () => {
             const { success, error, result } = await getUserBilling(email)
 
             if (success) {
                 setUserTier(result.subscriptionTier)
             } else {
-                console.error(error)
+                showToast(error, "error")
                 setUserTier("free")
             }
+
+            setIsLoading(false)
         }
 
-        getUserTier()
+        fetchUserTier()
     }, [user, isLoaded])
 
     const currentTier = userTier ? tiersArr.indexOf(userTier) : -1
-    const isLoadingTier = userTier === null
 
     const handleSelectPlan = async (tierId: Tiers) => {
         if (tierId === userTier) return
@@ -118,7 +117,7 @@ export default function PricingPage() {
         if (!data.error) {
             router.push(data.url)
         } else {
-            console.error(data.error)
+            showToast(data.error, "error")
         }
     }
 
@@ -142,7 +141,7 @@ export default function PricingPage() {
                     <p className="mt-2 text-sm text-neutral-500">
                         You&apos;re currently on the
                         <span className="font-medium text-neutral-700">
-                            {isLoadingTier
+                            {isLoading
                                 ? " ... "
                                 : " " + pillsArr.find((pill) => pill.id === userTier)?.name + " "}
                         </span>
@@ -169,12 +168,12 @@ export default function PricingPage() {
                                 key={pill.id}
                                 className={cn(
                                     "relative flex flex-col rounded-2xl border bg-white p-6",
-                                    pill.highlighted && !isLoadingTier
+                                    pill.highlighted && !isLoading
                                         ? "border-blue-600 shadow-md -translate-y-2"
                                         : "border-neutral-200 shadow-sm"
                                 )}
                             >
-                                {pill.highlighted && !isCurrent && !isLoadingTier ? (
+                                {pill.highlighted && !isCurrent && !isLoading ? (
                                     <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white">
                                         Most popular
                                     </Badge>
@@ -203,7 +202,7 @@ export default function PricingPage() {
                                     <span className="text-sm text-neutral-500">/ month</span>
                                 </div>
 
-                                {isLoadingTier ? (
+                                {isLoading ? (
                                     <div className="mt-6 h-9 w-full animate-pulse rounded-md bg-neutral-200" />
                                 ) : (
                                     <Button

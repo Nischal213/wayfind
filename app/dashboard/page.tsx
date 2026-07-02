@@ -11,7 +11,6 @@ import { useUser } from "@clerk/nextjs";
 import { ChartNoAxesColumnIncreasing } from "lucide-react";
 import { getUserBilling } from "@/actions/getUserBilling";
 import { Tiers } from "@/lib/stripe/types";
-import { Toaster } from "@/components/ui/sonner";
 import { showToast } from "@/lib/utils";
 
 export default function DashBoardPage() {
@@ -74,7 +73,6 @@ export default function DashBoardPage() {
                         </div>
                     }
                 </div>
-                <Toaster></Toaster>
             </SidebarProvider>
         </ReactFlowProvider>
     )

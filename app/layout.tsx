@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono , JetBrains_Mono , Dancing_Script } from "next/font/google";
+import { Geist, Geist_Mono, JetBrains_Mono, Dancing_Script } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,13 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 const jetBrainsMono = JetBrains_Mono({
-  variable : "--font-jetbrains-mono",
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
 })
 
 const dancingScript = Dancing_Script({
-  variable : "--font-dancing-script",
-  subsets : ["latin"],
+  variable: "--font-dancing-script",
+  subsets: ["latin"],
 })
 
 export const metadata: Metadata = {
@@ -41,6 +42,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ClerkProvider>
           {children}
+          <Toaster></Toaster>
         </ClerkProvider>
       </body>
     </html>

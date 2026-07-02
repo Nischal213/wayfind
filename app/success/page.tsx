@@ -39,7 +39,7 @@ export default function SuccessPage() {
         }
 
         verifyPayment()
-    }, [])
+    })
 
     return (
         <>

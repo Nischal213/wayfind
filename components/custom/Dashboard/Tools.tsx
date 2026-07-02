@@ -1,7 +1,7 @@
 import { MarkerType, type Node, type Edge, useReactFlow } from "@xyflow/react"
 import { ToolsDialogBox } from "@/components/common/ToolsDialogBox"
 import { ChartNetwork, CircleMinus, CirclePlus, Network, Spline, SplinePointer } from "lucide-react"
-import { ToolsDialogBoxField, ToolsDialogBoxProps, ToolSideBarProps, WhiteboardProps } from "@/lib/types"
+import { ToolsDialogBoxField, ToolsDialogBoxProps, ToolSideBarProps } from "@/lib/types"
 import { isNameValid, capitalizeWord, saveGraph, isReserved } from "@/lib/utils"
 import { bellmanford } from "@/lib/algorithms/bellmanford"
 import { djikstra } from "@/lib/algorithms/djikstra"
