@@ -32,6 +32,7 @@ A key technical achievement is its **"zero-latency" persistence layer**: graph s
 - 🔍 **Optimal Pathfinding** — Production-ready pathfinding engine built into the core architecture
 - 🤖 **AI Insights** — Powered by Google Gemini for intelligent graph analysis
 - 🔐 **Authentication** — Secure user accounts via Clerk
+- 💳 **Tiered Billing** — Stripe-powered subscription plans
 
 ---
 
@@ -44,6 +45,7 @@ A key technical achievement is its **"zero-latency" persistence layer**: graph s
 | Authentication | [Clerk](https://clerk.com/) |
 | Database & Persistence | [Supabase](https://supabase.com/) (PostgreSQL) |
 | AI Insights | [Google Gemini API](https://ai.google.dev/) (`@google/genai`) |
+| Billing | [Stripe](https://stripe.com/) |
 | Styling | [Tailwind CSS](https://tailwindcss.com/) & [shadcn/ui](https://ui.shadcn.com/) |
 
 ---
@@ -57,6 +59,7 @@ A key technical achievement is its **"zero-latency" persistence layer**: graph s
   - [Google Gemini](https://aistudio.google.com/app/apikey) — obtainable via Google AI Studio
   - [Clerk](https://dashboard.clerk.com/) — obtainable via the Clerk Dashboard
   - [Supabase](https://supabase.com/dashboard/) — obtainable via the Supabase Dashboard
+  - [Stripe](https://dashboard.stripe.com/apikeys) — obtainable via the Stripe Dashboard
 
 ### Installation
 
@@ -105,20 +108,32 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 # ─── Google Gemini ─────────────────────────────────────────────────────────────
 # Keys found at: https://aistudio.google.com/app/apikey
 GEMINI_API_KEY=your_gemini_api_key
+
+# ─── Stripe ─────────────────────────────────────────────────────────────────────
+# Keys found at: https://dashboard.stripe.com/apikeys
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_RESTRICTED_KEY=your_stripe_restricted_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+NEXT_PUBLIC_STRIPE_PRO_ID=your_stripe_pro_price_id
+NEXT_PUBLIC_STRIPE_MAX_ID=your_stripe_max_price_id
+
+# ─── App ────────────────────────────────────────────────────────────────────────
+NEXT_PUBLIC_APP_URL=your_app_url
 ```
 
 ---
 
 ## Roadmap
 
-**Status:** Core architecture and pathfinding engine are complete and production-ready.
+**Status:** Core architecture, pathfinding engine, and billing are complete and production-ready.
 
 | Feature | Status |
 |---|---|
 | Core graph engine & pathfinding | ✅ Complete |
 | Zero-latency Supabase persistence | ✅ Complete |
 | Minimum Spanning Tree (MST) analysis | ✅ Complete |
-| Stripe integration for tiered billing | 🔜 Planned |
+| Stripe integration for tiered billing | ✅ Complete |
 | Real-time multi-user collaboration via WebSockets | 🔜 Planned |
 
 ---
