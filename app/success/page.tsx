@@ -14,6 +14,7 @@ function SuccessContent() {
 
     useEffect(() => {
         let cancelled = false
+        let interval: NodeJS.Timeout
 
         const verifyPayment = async () => {
             const { success, complete, email, newTier } = await verifySessionId(sessionIdValue)
@@ -21,7 +22,7 @@ function SuccessContent() {
             if (!success || !complete || !email) return router.push("/dashboard")
 
             let attempts = 0
-            const interval = setInterval(async () => {
+            interval = setInterval(async () => {
                 attempts++
                 if (attempts >= 10) {
                     clearInterval(interval)
@@ -30,6 +31,7 @@ function SuccessContent() {
                 }
 
                 const { result } = await getUserBilling(email)
+                if (cancelled) return
 
                 if (result.subscriptionTier === newTier) {
                     clearInterval(interval)
@@ -40,7 +42,10 @@ function SuccessContent() {
 
         verifyPayment()
 
-        return () => { cancelled = true }
+        return () => {
+            cancelled = true
+            clearInterval(interval)
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
